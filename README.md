@@ -63,9 +63,9 @@ Vue.use(VueAppScroller);
     <nav-bar title="Pull & Reach"></nav-bar>
     <div class="scroller-container">
       <scroller>
-        <div solt="scroller-content">
-    		<!-- dom -->
-    	</div>
+        <div>
+    		  <!-- dom -->
+    	  </div>
       </scroller>
     </div>
   </div>
@@ -88,11 +88,11 @@ Vue.use(VueAppScroller);
 
 ```vue
 <scroller
-	:scrollingY="true"  
-    :onPullRefresh="refresh"
-    :onReachBottom ="loadingMore"
-	:onScroll ="scroll"
-    :data="items">
+  :scrollingY="true"  
+  :onPullRefresh="refresh"
+  :onReachBottom ="loadingMore"
+  :onScroll ="scroll"
+  :data="items">
 </scroller>
 ```
 
@@ -102,50 +102,50 @@ Vue.use(VueAppScroller);
 
 ```js
 export default {
-	data () {
-      return {
-        isRefresh:false,
-        x:0,
-        y:0,
-        pageNum:1,
-        items: []
+  data () {
+    return {
+      isRefresh:false,
+      x:0,
+      y:0,
+      pageNum:1,
+      items: []
+    }
+  },
+  methods: {
+    // 滚动事件监听
+    scroll(e){
+      this.x = e.x
+      this.y = e.y
+    },
+    // 下拉事件监听
+    refresh(done) {
+      if(!this.isRefresh){
+        this.isRefresh = true			  // 阻止重复操作
+        let items = []
+        for (let i = 1; i <= 20; i++) {
+          items.push(i + 'my-data')
+        }
+        setTimeout(() => {
+          this.items = items      // 重置数据
+          this.pageNum = 1        // 重置分页
+          this.isRefresh = false  // 重置刷新状态
+          done()                  // 关闭刷新状态
+        }, 1500)
       }
     },
-    methods: {
-        // 滚动事件监听
-        scroll(e){
-            this.x = e.x
-            this.y = e.y
-        },
-        // 下拉事件监听
-        refresh(done) {
-            if(!this.isRefresh){
-                this.isRefresh = true			// 阻止重复操作
-                let items = []
-                for (let i = 1; i <= 20; i++) {
-                    items.push(i + 'my-data')
-                }
-                setTimeout(() => {
-                    this.items = items   		// 重置数据
-                    this.pageNum = 1	 		// 重置分页
-                    this.isRefresh = false  	// 重置刷新状态
-                    done()						// 关闭刷新状态
-                }, 1500)
-            }
-        },
-        // 触底事件监听   
-        // 会自动判断还有无更多数据
-        loadingMore(e) {
-          let items = []
-          for (let i = 0; i < 20; i++) {
-              items.push(i + 'my-data')
-          }
-          setTimeout(() => {
-            this.items = this.items.concat(items)
-            this.pageNum = this.pageNum + 1
-          }, 1500)
-      },
-    }
+    // 触底事件监听   
+    // 会自动判断还有无更多数据
+    loadingMore(e) {
+      let items = []
+      for (let i = 0; i < 20; i++) {
+        items.push(i + 'my-data')
+      }
+      setTimeout(() => {
+        this.items = this.items.concat(items)
+        this.pageNum = this.pageNum + 1
+      }, 1500)
+    },
+  }
 }
 ```
 

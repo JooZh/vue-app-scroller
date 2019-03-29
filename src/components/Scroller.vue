@@ -13,7 +13,7 @@
         </div>
       </div>
       <div class="scroller--content">
-        <slot name="scroller--content"></slot>
+        <slot></slot>
       </div>
       <div class="loading--content" v-if="!!onReachBottom" >
         <span v-if="showLoading" class="spinner-holder">
