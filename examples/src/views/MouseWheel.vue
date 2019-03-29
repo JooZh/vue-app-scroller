@@ -28,14 +28,12 @@
     components: {
       NavBar
     },
-
     data () {
       return {
         isRefresh:false,
         items: []
       }
     },
-
     mounted() {
       let items = []
       for (let i = 1; i <= 20; i++) {
@@ -44,7 +42,6 @@
       this.items = items
       this.bottom = 20
     },
-
     methods: {
       refresh(done) {
         if(!this.isRefresh){
@@ -61,7 +58,6 @@
           }, 1500)
         }
       },
-
       loadingMore(e) {
           setTimeout(() => {
             let start = this.bottom + 1

@@ -13,7 +13,7 @@
         </div>
       </div>
       <div class="scroller--content">
-        <slot></slot>
+        <slot name="scroller--content"></slot>
       </div>
       <div class="loading--content" v-if="!!onReachBottom" >
         <span v-if="showLoading" class="spinner-holder">
@@ -60,7 +60,7 @@ export default {
     mousewheel:{
       type:Boolean,
       default:false,
-      description:'是否纵向滚动'
+      description:'是否开启鼠标滚动'
     },
     snapping:{
       type: [Boolean,Number,Object],
@@ -174,7 +174,7 @@ export default {
     setSnapping(){
       if(!!this.snapping){
         if(typeof this.snapping === 'number'){
-          this.scroller.setSnapSize(this.snapping)
+          this.scroller.setSnapSize(this.snapping,this.snapping)
         }else if(typeof this.snapping === 'object'){
           this.scroller.setSnapSize(this.snapping.width,this.snapping.height)
         }

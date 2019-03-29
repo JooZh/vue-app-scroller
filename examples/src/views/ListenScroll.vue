@@ -1,6 +1,6 @@
 <template>
   <div>
-    <nav-bar title="Smoothing Scroll"></nav-bar>
+    <nav-bar title="Listen Scroll"></nav-bar>
     <div class="scroller-container">
       <scroller 
         :onScroll="scroll"
@@ -33,11 +33,6 @@
   import NavBar from './NavBar.vue'
 
   export default {
-    props:{
-      pos:{
-        type:Object
-      }
-    },
     components: {
       NavBar
     },
@@ -45,11 +40,9 @@
       return {
         items: [],
         x: 0,
-        y: 0,
-        timer: 0
+        y: 0
       }
     },
-
     mounted() {
       let items = []
       for (let i = 1; i < 100; i++) {
@@ -59,13 +52,9 @@
     },
     methods:{
       scroll(e){
-        // console.log(e)
         this.x = e.x
         this.y = e.y
       }
-    },
-    beforeDestroy() {
-      clearInterval(this.timer)
     }
   }
 </script>
