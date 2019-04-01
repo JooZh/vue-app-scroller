@@ -9,6 +9,28 @@
     </div>
   </div>
 </template>
+
+
+<script>
+  export default {
+    props: {
+      title: {
+        type: String
+      },
+
+      backTo: {
+        type: String,
+        default: '/'
+      }
+    },
+
+    methods: {
+      back () {
+        this.$router.push(this.backTo)
+      }
+    }
+  }
+</script>
 <style>
   .nav-bar {
     width: 100%;
@@ -42,24 +64,3 @@
     color: #666;
   }
 </style>
-
-<script>
-  export default {
-    props: {
-      title: {
-        type: String
-      },
-
-      backTo: {
-        type: String,
-        default: '/'
-      }
-    },
-
-    methods: {
-      back () {
-        this.$router.push(this.backTo)
-      }
-    }
-  }
-</script>

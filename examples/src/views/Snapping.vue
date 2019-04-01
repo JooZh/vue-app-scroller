@@ -13,9 +13,6 @@
     </div>
   </div>
 </template>
-<style>
-  
-</style>
 <script>
   import NavBar from './NavBar.vue'
 

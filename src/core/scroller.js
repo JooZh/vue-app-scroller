@@ -446,6 +446,7 @@ class Scroller {
     let maxScrollY = Math.max(this.contentHeight - this.containerHeight, 0);
     this.refreshHeight = this.options.isPullRefresh ? childrens[0].offsetHeight : 0;
     this.loadingHeight = this.options.isReachBottom ? childrens[childrens.length-1].offsetHeight : 0;
+
     // 刷新最大值
     this.maxScrollX = Math.max(this.contentWidth - this.containerWidth, 0);
     this.maxScrollY = maxScrollY - this.refreshHeight;
@@ -569,7 +570,7 @@ class Scroller {
     if (typeof handle == 'function') {
       this.handles[eventType].push(handle);
     } else {
-      throw new Error('缺少回调函数');
+      throw new Error('Missing callback function');
     }
   }
   // 发送 事件 以及附带参数和
@@ -579,7 +580,7 @@ class Scroller {
         item.apply(null, args);
       })
     } else {
-      throw new Error(`"${eventType}"事件未注册`);
+      throw new Error(`"${eventType}"Event not registered`);
     }
   }
   /*

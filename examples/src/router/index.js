@@ -9,6 +9,7 @@ import Snapping from '../views/Snapping.vue'
 import Paging from '../views/Paging.vue'
 import PullAndReach from '../views/PullAndReach.vue'
 import MouseWheel from '../views/MouseWheel.vue'
+import ScrollerX from '../views/ScrollerX.vue'
 
 
 Vue.use(Router)
@@ -22,6 +23,7 @@ export default new Router({
     { path: '/snapping', component: Snapping },
     { path: '/paging', component: Paging },
     { path: '/pullandreach', component: PullAndReach },
-    { path: '/mousewheel', component: MouseWheel }
+    { path: '/mousewheel', component: MouseWheel },
+    { path: '/scrollerx', component: ScrollerX }
   ]
 })

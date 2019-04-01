@@ -4,6 +4,8 @@ import Vue from 'vue'
 import App from './App'
 import FastClick from 'fastclick'
 
+import '@/css/base.css'
+
 import router from './router/index'
 import VueAppScroller from '../../src/index'
 

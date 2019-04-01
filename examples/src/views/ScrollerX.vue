@@ -1,19 +1,22 @@
 <template>
   <div>
-    <nav-bar title="Listen Scroll"></nav-bar>
+    <nav-bar title="ScrollerX"></nav-bar>
     <div class="scroller-container">
       <scroller 
         :onScroll="scroll"
-        :scrollingY="true"  
+        :scrollingX="true"  
         :data="items">
-        <div v-for="(item, index) in items" class="row" :class="{'grey-bg': index % 2 == 0}" :key="index">
-          {{ item }}
+        <div class="list">
+          <div v-for="(item, index) in items" class="row" :class="{'grey-bg': index % 2 == 0}" :key="index">
+            {{ item }}
+          </div>
         </div>
       </scroller>
     </div>
     <div class="info-position">{{ x + ',' + y }}</div>
   </div>
 </template>
+
 <script>
   import NavBar from './NavBar.vue'
 
@@ -30,10 +33,11 @@
     },
     mounted() {
       let items = []
-      for (let i = 1; i < 100; i++) {
-        items.push(i + ' - keep walking, be 2 with you.')
+      for (let i = 1; i < 10; i++) {
+        items.push(i + ' - keep walking, be 2 with you.keep walking, be 2 with youkeep walking, be 2 with youkeep walking, be 2 with youkeep walking, be 2 with youkeep walking, be 2 with youkeep walking, be 2 with you')
       }
       this.items = items
+
     },
     methods:{
       scroll(e){
@@ -43,7 +47,6 @@
     }
   }
 </script>
-
 <style>
   
 </style>

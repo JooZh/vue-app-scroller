@@ -12,15 +12,15 @@
           <span class="refresh__text" v-else-if="refreshState == 2">正在刷新</span>
         </div>
       </div>
-      <div class="scroller--content">
-        <slot></slot>
-      </div>
+      <span v-else class="refresh-no"></span>
+      <slot></slot>
       <div class="loading--content" v-if="!!onReachBottom" >
         <span v-if="showLoading" class="spinner-holder">
           <spinner class="icon__spinner" style="fill: #AAA;stroke: #AAA"></spinner>
         </span>
         <div v-else class="no-data-text"> 没有更多数据 </div>
       </div>
+      <span v-else class="loading-no"></span>
     </div>
   </div>
 </template>
@@ -32,7 +32,7 @@ import Arrow from './Arrow.vue'
 export default {
   props:{
     data:{
-      type:[Array,Object],
+      type:[Array,Object,Number],
       description:'监听数据的变化'
     },
     onScroll:{
@@ -101,36 +101,56 @@ export default {
       refreshState: 0,   // 0: pull to refresh, 1: release to refresh, 2: refreshing
     }
   },
-  created(){
-
-  },
   mounted(){
     // 得到需要的 dom
     this.container = this.$refs.container;
     this.content = this.$refs.content;
-    // 实例化 Scroller
-    this.scroller = new Scroller(this.content, {
-      listenScroll:!!this.onScroll,       // 是否需要监听滚动事件
-      isPullRefresh:!!this.onPullRefresh, //  是否启用下拉刷新事件
-      isReachBottom:!!this.onReachBottom, // 是否启用上拉加载事件
-      scrollingX: this.scrollingX,    // 开启横向滚动
-      scrollingY: this.scrollingY,    // 开启纵向滚动
-      mousewheel: this.mousewheel,     // 开启鼠标滚轮事件监听
-      paging: this.paging,            // 是否开启分页
-      snapping: this.snapping,        // 是否开启像素网格
-      animating: this.animating,      // 使用动画效果
-      animationDuration: this.duration,
-      bouncing: this.bouncing         // 开启回弹效果
-    });
-    // 数据发生变化后更新 dom
-    this.$watch('data',(newData,oldData)=>{
+    // 必须设置延迟
+    let timer = setTimeout(()=>{
+      // console.log('开始实例化滚动')
+      // 当开启横向滚动的时候
+      if(this.scrollingX){
+        // 得到宽度
+        let contentDoms = this.content.children[1].children
+        let widths = 0;
+        Array.from(contentDoms).forEach(item=>{
+          widths += item.offsetWidth;
+        })
+        this.content.style.width = widths+'px';
+      }
+      // 实例化 Scroller
+      this.scroller = new Scroller(this.content, {
+        listenScroll:!!this.onScroll,       // 是否需要监听滚动事件
+        isPullRefresh:!!this.onPullRefresh, //  是否启用下拉刷新事件
+        isReachBottom:!!this.onReachBottom, // 是否启用上拉加载事件
+        scrollingX: this.scrollingX,    // 开启横向滚动
+        scrollingY: this.scrollingY,    // 开启纵向滚动
+        mousewheel: this.mousewheel,     // 开启鼠标滚轮事件监听
+        paging: this.paging,            // 是否开启分页
+        snapping: this.snapping,        // 是否开启像素网格
+        animating: this.animating,      // 使用动画效果
+        animationDuration: this.duration,
+        bouncing: this.bouncing         // 开启回弹效果
+      });
+      // 数据发生变化后更新 dom 性能优化
+      this.$watch('data',(newData,oldData)=>{
+        this.$nextTick(()=>{
+          this.scroller.setDimensions()
+        })
+      },{ deep: typeof this.data !== 'number' })
+      // 根据是否绑定监听函数来判断是否调
+      !!this.onScroll && this.onScrollHandler();
+      !!this.onPullRefresh && this.onPullRefreshHandler();
+      !!this.onReachBottom && this.onReachBottomHandler();
+      !!this.snapping && this.setSnapping();
+      clearTimeout(timer)
+     },0)
+  },
+  activated () {
+    let timer = setTimeout(()=>{
       this.scroller.setDimensions()
-    },{ deep:true })
-    // 根据是否绑定监听函数来判断是否调
-    !!this.onScroll && this.onScrollHandler();
-    !!this.onPullRefresh && this.onPullRefreshHandler();
-    !!this.onReachBottom && this.onReachBottomHandler();
-    !!this.snapping && this.setSnapping();
+      clearTimeout(timer)
+    },10)
   },
   methods:{
     // 监听滚动事件处理

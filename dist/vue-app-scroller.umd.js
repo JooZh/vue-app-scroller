@@ -701,7 +701,7 @@ var Scroller = function () {
       if (typeof handle == 'function') {
         this.handles[eventType].push(handle);
       } else {
-        throw new Error('缺少回调函数');
+        throw new Error('Missing callback function');
       }
     }
   }, {
@@ -716,7 +716,7 @@ var Scroller = function () {
           item.apply(null, args);
         });
       } else {
-        throw new Error('"' + eventType + '"\u4E8B\u4EF6\u672A\u6CE8\u518C');
+        throw new Error('"' + eventType + '"Event not registered');
       }
     }
   }, {
