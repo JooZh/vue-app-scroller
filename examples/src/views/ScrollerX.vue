@@ -34,7 +34,7 @@
     mounted() {
       let items = []
       for (let i = 1; i < 10; i++) {
-        items.push(i + ' - keep walking, be 2 with you.keep walking, be 2 with youkeep walking, be 2 with youkeep walking, be 2 with youkeep walking, be 2 with youkeep walking, be 2 with youkeep walking, be 2 with you')
+        items.push(i + ' - keep walking, be 2 with you.keep walking, be 2 with youkeep walking, be 2 with youkeep walking, be 2 with youkeep walking')
       }
       this.items = items
 

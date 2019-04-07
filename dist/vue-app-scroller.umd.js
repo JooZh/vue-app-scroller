@@ -1,5 +1,5 @@
 /**
-* vue-app-effect v1.0.0
+* vue-app-effect v1.0.1
 * https://github.com/JooZh/vue-app-scroller
 * Released under the MIT License.
 */
@@ -221,7 +221,7 @@ var Scroller = function () {
     this.content = renderDom;
     this.render = Render(this.content);
     this.animate = Animate;
-    this.handles = { scroll: [] };
+    this.handles = { scroll: [], loading: [] };
     this.isSingleTouch = false;
     this.isTracking = false;
     this.completeDeceleration = false;
@@ -610,9 +610,11 @@ var Scroller = function () {
         if (prevMaxScroll !== this.maxScrollY) {
           this.reachBottomActive = false;
         } else {
-          this.emit('loading', {
-            hasMore: false
-          });
+          if (this.maxScrollY != 0) {
+            this.emit('loading', {
+              hasMore: false
+            });
+          }
         }
       }
 
@@ -769,7 +771,9 @@ var Scroller = function () {
       }
 
       if (this.options.isReachBottom && !this.reachBottomActive) {
-        if (Number(this.scrollY.toFixed()) > this.maxScrollY - this.loadingHeight) {
+        var scrollYn = Number(this.scrollY.toFixed());
+        var absMaxScrollYn = this.maxScrollY - this.loadingHeight;
+        if (scrollYn > absMaxScrollYn && absMaxScrollYn > 0) {
           this.emit('loading', {
             hasMore: true
           });

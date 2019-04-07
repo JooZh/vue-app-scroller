@@ -102,22 +102,20 @@ export default {
     }
   },
   mounted(){
-    // 得到需要的 dom
-    this.container = this.$refs.container;
-    this.content = this.$refs.content;
-    // 必须设置延迟
-    let timer = setTimeout(()=>{
-      // console.log('开始实例化滚动')
+    this.initScroller();
+  },
+  // 对 keep alive激活组件使用
+  activated () {
+    this.refreshScroller();
+  },
+  methods:{
+    // 初始化
+    initScroller(){
+      // 得到需要的 dom
+      this.container = this.$refs.container;
+      this.content = this.$refs.content;
       // 当开启横向滚动的时候
-      if(this.scrollingX){
-        // 得到宽度
-        let contentDoms = this.content.children[1].children
-        let widths = 0;
-        Array.from(contentDoms).forEach(item=>{
-          widths += item.offsetWidth;
-        })
-        this.content.style.width = widths+'px';
-      }
+      this.getContentWidth()
       // 实例化 Scroller
       this.scroller = new Scroller(this.content, {
         listenScroll:!!this.onScroll,       // 是否需要监听滚动事件
@@ -135,7 +133,12 @@ export default {
       // 数据发生变化后更新 dom 性能优化
       this.$watch('data',(newData,oldData)=>{
         this.$nextTick(()=>{
-          this.scroller.setDimensions()
+          // 重置加载状态
+          if(newData.length === 0 ){
+            this.showLoading = true
+          }
+          this.firstLoading = false;
+          this.refreshScroller()
         })
       },{ deep: typeof this.data !== 'number' })
       // 根据是否绑定监听函数来判断是否调
@@ -143,16 +146,27 @@ export default {
       !!this.onPullRefresh && this.onPullRefreshHandler();
       !!this.onReachBottom && this.onReachBottomHandler();
       !!this.snapping && this.setSnapping();
-      clearTimeout(timer)
-     },0)
-  },
-  activated () {
-    let timer = setTimeout(()=>{
+    },
+    // 数据更新下后 调用刷新
+    refreshScroller(){
+      this.getContentWidth()
       this.scroller.setDimensions()
-      clearTimeout(timer)
-    },10)
-  },
-  methods:{
+    },
+    // 获取横向滚动的数据
+    getContentWidth(){
+      if(this.scrollingX){
+        // 得到宽度
+        let contentDoms = this.content.children[1].children
+        let widths = 0;
+        Array.from(contentDoms).forEach(item=>{
+          widths += item.offsetWidth;
+        })
+        this.content.style.width = widths+'px';
+      }
+    },
+    /**
+     * 事件处理
+     */
     // 监听滚动事件处理
     onScrollHandler(){
       if(!!this.onScroll){
@@ -174,6 +188,7 @@ export default {
         })
       }
     },
+    // 下拉刷新停止
     onPullRefreshDone(){
       this.scroller.finishPullToRefresh()
     },

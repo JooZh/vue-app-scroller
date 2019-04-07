@@ -31,7 +31,7 @@ class Scroller {
     this.content = renderDom
     this.render = Render(this.content) // 渲染函数
     this.animate = Animate; // 动画库                  
-    this.handles = { scroll:[]}         // 自定义事件 用 on 监听，用 emit 发送
+    this.handles = { scroll:[],loading:[]}         // 自定义事件 用 on 监听，用 emit 发送
     // 状态 {Boolean}
     this.isSingleTouch = false //是否只有一根手指用于触摸操作
     this.isTracking = false //触摸事件序列是否正在进行中
@@ -456,9 +456,11 @@ class Scroller {
       if(prevMaxScroll !== this.maxScrollY){
         this.reachBottomActive = false;
       }else{
-        this.emit('loading',{
-          hasMore: false
-        })
+        if(this.maxScrollY != 0){
+          this.emit('loading',{
+            hasMore: false
+          })
+        }
       }
     }
     // 更新滚动位置
@@ -644,7 +646,9 @@ class Scroller {
     
     // 是否需要监听触底事件
     if(this.options.isReachBottom && !this.reachBottomActive){
-      if(Number(this.scrollY.toFixed()) > (this.maxScrollY - this.loadingHeight)){
+      let scrollYn = Number(this.scrollY.toFixed());
+      let absMaxScrollYn =  this.maxScrollY - this.loadingHeight;
+      if(scrollYn > absMaxScrollYn && absMaxScrollYn > 0){
         this.emit('loading',{
           hasMore: true
         })
