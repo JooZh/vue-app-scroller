@@ -1,12 +1,9 @@
 <template>
-  <div class="nav-bar">
+  <div class="nav-bar border-bottom-1px">
     <div class="btn-back" @click="back">
       <img class="arrow-back" src="../assets/arrow-back.png">
     </div>
-
-    <div class="title" v-if="title">
-      {{title}}
-    </div>
+    <div class="title" v-if="title">{{title}}</div>
   </div>
 </template>
 
@@ -17,13 +14,11 @@
       title: {
         type: String
       },
-
       backTo: {
         type: String,
         default: '/'
       }
     },
-
     methods: {
       back () {
         this.$router.push(this.backTo)
@@ -31,36 +26,29 @@
     }
   }
 </script>
-<style>
-  .nav-bar {
+<style lang="stylus">
+  .nav-bar
     width: 100%;
     height: 44px;
-    border-bottom: 1px solid rgba(0,0,0,0.1);
     background-color: #fff;
     position: relative;
     z-index: 1000;
-  }
-
-  .nav-bar .btn-back {
-    height: 100%;
-    position: absolute;
-    top: 0;
-    left: 10px;
-  }
-
-  .nav-bar .arrow-back {
-    width: 8px;
-    height: 16px;
-    float: left;
-    margin-top: 14px;
-    margin-right: 15px;
-  }
-
-  .nav-bar .title {
-    width: 100%;
-    text-align: center;
-    font-size: 16px;
-    line-height: 46px;
-    color: #666;
-  }
+    .btn-back 
+      height: 100%;
+      position: absolute;
+      width 30px;
+      top: 0;
+      left: 0;
+      display flex;
+      justify-content center;
+      align-items center
+    .arrow-back
+      width: 8px;
+      height: 16px;
+    .title
+      width: 100%;
+      text-align: center;
+      font-size: 18px;
+      line-height: 44px;
+      color: #444;
 </style>

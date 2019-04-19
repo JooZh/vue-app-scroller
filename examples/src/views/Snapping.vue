@@ -2,40 +2,202 @@
   <div class="snapping">
     <nav-bar title="Snapping"></nav-bar>
     <div class="scroller-container">
-      <scroller  
-        :scrollingY="true"
-        :snapping="snapping"
-        :data="items">
-        <div v-for="(item, index) in items" class="row" :class="{'grey-bg': index % 2 == 0}" :key="index">
-          {{ item }}
+      <div class="item-title border-bottom-1px">基本使用</div>
+      <div class="item-content scroll-y-bd y1 border-bottom-1px">
+        <div class="flex-box" v-for="(item,index) in Array(4)" :key="index" :class="index!==3?'border-right-1px':''">
+          <scroller 
+            :scrollingY="true"
+            :snapping="snapping"
+            :data="itemsY">
+            <div class="scroller-content">
+              <div class="row" v-for="(item, index) in itemsY" :class="{'grey-bg': index % 2 == 0}" :key="index">{{ item }}</div>
+            </div>
+          </scroller>
         </div>
-      </scroller>
+      </div>
+      <div class="item-title border-bottom-1px">横向滚动</div>
+      <div class="item-content scroll-x-bd border-bottom-1px">
+        <div class="flex-box" v-for="(item,index) in Array(3)" :key="item" :class="index!==2?'border-bottom-1px':''">
+          <scroller 
+            :scrollingX="true"
+            :snapping="snapping"
+            :data="itemsX">
+            <div class="scroller-content">
+              <div class="row" v-for="(item, index) in itemsX" :class="{'grey-bg': index % 2 == 0}" :key="index">{{ item }}</div>
+            </div>
+          </scroller>
+        </div>
+      </div>
+      <div class="item-title border-bottom-1px">返回对应索引  <span class="picker" @click="openDateTime">打开时间选择器</span></div>
+      <div class="item-show border-bottom-1px">
+        <div>{{snappingArray[0]}}</div>
+        <div>{{snappingArray[1]}}</div>
+        <div>{{snappingArray[2]}}</div>
+        <div>{{snappingArray[3]}}</div>
+      </div>
+      <div class="item-content scroll-y-bd y2 border-bottom-1px">
+        <div class="flex-box" v-for="(item,index) in snappingArray" :key="index">
+          <scroller 
+            snappingType="center"
+            :scrollingY="true"
+            :snapping="snapping"
+            :snappingComplete="snappingComplete"
+            :snappingSelect="item"
+            :snappingListIndex="index"
+            :data="itemsY">
+            <div class="scroller-content">
+              <div class="row" v-for="(item, index) in itemsY" :key="index">{{ item }}</div>
+            </div>
+          </scroller>
+        </div>
+        <div class="shade"></div>
+        <div class="indicator">
+          <span class="border-bottom-1px border-top-1px"></span>
+        </div>
+      </div>
     </div>
   </div>
 </template>
+
 <script>
   import NavBar from './NavBar.vue'
-
+  import dateTime from '../components/dataTime/index.js'
   export default {
     components: {
       NavBar
     },
-
     data () {
       return {
-        snapping: {
-          width:50,
-          height:50,
+        snapping:{
+          width:90,
+          height:40
         },
-        animationDuration: 150,
-        items: []
+        itemsY: [],
+        itemsX: [],
+        snappingArray:[],
       }
     },
+    created () {
+      let itemsY = []
+      for (let i = 1; i <= 20; i++) {
+        itemsY.push('ScrollerY.'+i )
+      }
 
+      this.snappingArray=[0,2,0,6]
+
+      let itemsX = []
+
+      for (let i = 1; i <= 10; i++) {
+        itemsX.push('ScrollerX.'+i)
+      }
+      setTimeout(()=>{
+        this.itemsX = itemsX;
+        this.itemsY = itemsY;
+      },30)
+    },
     mounted() {
-      for (let i = 1; i < 100; i++) {
-        this.items.push(i + ' - keep walking, be 2 with you.')
+    },
+    methods:{
+      openDateTime(){
+        dateTime.open({
+          onOkClick(e){
+            console.log(e)
+            alert(e)
+          }
+        })
+      },
+      snappingComplete(e){
+        let add = this.snappingArray.concat([])
+        this.snappingArray.forEach((item,index) => {
+          if(index === e.listIndex){
+            add[index] = e.selectIndex
+          }
+        });
+        this.snappingArray = add
       }
     }
   }
 </script>
+<style lang="stylus">
+  .snapping
+    .picker
+      font-size:14px;
+      color:red;
+      margin-left:20px;
+    .item-show
+      height 18px;
+      display flex;
+      div
+        flex 1;
+        display flex
+        align-items center
+        justify-content center
+        font-size 12px
+        color #999
+    .scroll-y-bd
+      display flex
+      &.y1
+        height 120px;
+      &.y2
+        height 200px
+        .flex-box
+          .row
+            font-size 14px;
+      .flex-box
+        flex 1
+        position relative
+        .row
+          height 40px;
+          padding 0;
+          line-height 40px;
+          display flex;
+          align-items center;
+          justify-content center;
+          font-size 12px;
+      .shade
+        z-index: 3;
+        transform: translateZ(0);
+        background-image: linear-gradient(to bottom, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.6)), linear-gradient(to top, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.6));
+        background-position: top, bottom;
+        background-size: 100% 80px;
+        background-repeat: no-repeat;
+        pointer-events: none;
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 100%;
+        width: 100%;
+      .indicator
+        pointer-events: none;
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 100%;
+        width: 100%;
+        z-index: 4;
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+        span 
+          display: block;
+          width: 100%;
+          height: 40px;
+          position: relative;
+    .scroll-x-bd
+      height 120px;
+      .flex-box
+        height 40px;
+        position relative
+        display flex
+        align-items center
+        .row
+          width 90px;
+          float left;
+          height 40px;
+          padding 0;
+          line-height 40px;
+          display flex;
+          align-items center;
+          justify-content center;
+          font-size 12px;
+</style>

@@ -1,22 +1,22 @@
 <template>
   <div>
-    <nav-bar title="Listen Scroll"></nav-bar>
+    <nav-bar title="Click"></nav-bar>
     <div class="scroller-container">
-      <scroller 
-        :onScroll="scroll"
-        :scrollingY="true"  
-        :data="items">
-        <div v-for="(item, index) in items" class="row" :class="{'grey-bg': index % 2 == 0}" :key="index">
+      <scroller :scrollingY="true" :data="items">
+        <div 
+          v-for="(item, index) in items" 
+          class="row" 
+          @click="clickHandle(index+1)" 
+          :class="{'grey-bg': index % 2 == 0}"
+          :key="index">
           {{ item }}
         </div>
       </scroller>
     </div>
-    <div class="info-position">{{ x + ',' + y }}</div>
   </div>
 </template>
 <script>
   import NavBar from './NavBar.vue'
-
   export default {
     components: {
       NavBar
@@ -30,15 +30,14 @@
     },
     mounted() {
       let items = []
-      for (let i = 1; i < 100; i++) {
+      for (let i = 1; i < 20; i++) {
         items.push(i + ' - keep walking, be 2 with you.')
       }
       this.items = items
     },
     methods:{
-      scroll(e){
-        this.x = e.x
-        this.y = e.y
+      clickHandle(e){
+        alert('点击了：'+e)
       }
     }
   }

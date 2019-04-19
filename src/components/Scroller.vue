@@ -67,6 +67,21 @@ export default {
       default: false,
       description:'是否开启像素网格移动'
     },
+    snappingType:{
+      type: String,
+      default: 'default',
+      description:'snapping使用类型 [default,center]'
+    },
+    snappingSelect:{
+      type: [String,Number],
+      default: 0,
+      description:'默认选中的值'
+    },
+    snappingListIndex:{
+      type: [String,Number],
+      default: 0,
+      description:'当前的组序列'
+    },
     paging:{
       type: Boolean,
       default: false,
@@ -86,6 +101,16 @@ export default {
       type: Number,
       default: 250,
       description:'由 scrollTo 触发的动画持续时间 ms'
+    },
+    scrollingComplete:{
+      type: Function,
+      default(){return function(){}},
+      description:'滑动完成后的回调'
+    },
+    snappingComplete:{
+      type: Function,
+      default(){return function(){}},
+      description:'选择完成后的回调'
     }
   },
   components:{
@@ -94,6 +119,7 @@ export default {
   },
   data(){
     return {
+      ready:false,
       scroller:null,      // Scroller 实例
       container:null, 
       content:null,
@@ -106,7 +132,7 @@ export default {
   },
   // 对 keep alive激活组件使用
   activated () {
-    this.refreshScroller();
+    this.scroller.setDimensions()
   },
   methods:{
     // 初始化
@@ -114,8 +140,6 @@ export default {
       // 得到需要的 dom
       this.container = this.$refs.container;
       this.content = this.$refs.content;
-      // 当开启横向滚动的时候
-      this.getContentWidth()
       // 实例化 Scroller
       this.scroller = new Scroller(this.content, {
         listenScroll:!!this.onScroll,       // 是否需要监听滚动事件
@@ -126,22 +150,33 @@ export default {
         mousewheel: this.mousewheel,     // 开启鼠标滚轮事件监听
         paging: this.paging,            // 是否开启分页
         snapping: this.snapping,        // 是否开启像素网格
+        snappingType:this.snappingType,
+        snappingSelect:this.snappingSelect,
+        snappingListIndex:this.snappingListIndex,
         animating: this.animating,      // 使用动画效果
         animationDuration: this.duration,
-        bouncing: this.bouncing         // 开启回弹效果
+        bouncing: this.bouncing,                  // 开启回弹效果
+        scrollingComplete: this.scrollingComplete,  // 滑动完成后的回调事件
+        snappingComplete:this.snappingComplete      // 选择完成后的回调事件 多用于 snapping
       });
+
       // 数据发生变化后更新 dom 性能优化
       this.$watch('data',(newData,oldData)=>{
         this.$nextTick(()=>{
-          // 重置加载状态
+          //重置加载状态
           if(newData.length === 0 ){
             this.showLoading = true
           }
-          this.firstLoading = false;
-          this.refreshScroller()
+          if(newData.length !== 0  ){
+            this.refreshScroller()
+          }
         })
-      },{ deep: typeof this.data !== 'number' })
-      // 根据是否绑定监听函数来判断是否调
+      },{ deep: true})
+      // 数据发生变化后更新 dom 性能优化
+      // this.$watch('snappingSelect',(newData,oldData)=>{
+      //   this.initScroller()
+      // })
+      // 根据是否绑定监听函数来判断是否调用
       !!this.onScroll && this.onScrollHandler();
       !!this.onPullRefresh && this.onPullRefreshHandler();
       !!this.onReachBottom && this.onReachBottomHandler();
@@ -156,12 +191,14 @@ export default {
     getContentWidth(){
       if(this.scrollingX){
         // 得到宽度
-        let contentDoms = this.content.children[1].children
         let widths = 0;
+        let contentDoms = this.content.children[1].children
         Array.from(contentDoms).forEach(item=>{
-          widths += item.offsetWidth;
+          // 为获取移动端精度
+          let width = Math.round(item.getBoundingClientRect().width * 100) / 100;
+          widths += width;
         })
-        this.content.style.width = widths+'px';
+        this.content.style.width = Math.ceil(widths)+'px';
       }
     },
     /**

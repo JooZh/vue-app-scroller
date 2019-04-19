@@ -1,6 +1,6 @@
 <template>
   <div>
-    <nav-bar title="Pull & Reach"></nav-bar>
+    <nav-bar title="PullRefresh & ReachBottom"></nav-bar>
     <div class="scroller-container">
       <scroller
         :scrollingY="true"  
@@ -9,12 +9,9 @@
         :data="items">
         <div
           v-for="(item, index) in items" 
-          @click="onItemClick(index, item)"
           class="row" 
           :class="{'grey-bg': index % 2 == 0}" 
-          :key="index">
-          {{ item }}
-        </div>
+          :key="index">{{ item }}</div>
       </scroller>
     </div>
   </div>
@@ -73,10 +70,6 @@
             this.items = this.items.concat(items)
             this.bottom = this.bottom + 9
           }, 1500)
-      },
-
-      onItemClick(index, item) {
-        console.log(index)
       }
     }
   }

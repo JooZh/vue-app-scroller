@@ -6,14 +6,9 @@ html, body {
 body{
   font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
 }
-#app{
+#app
   width: 100%;
   height: 100%;
-}
-.app-container{
-  width: 100%;
-  height: 100%;
-}
 .scroller-container{
   position: absolute;
   top:44px;
@@ -21,33 +16,15 @@ body{
   right: 0;
   bottom:0;
 }
-
-.plugin-name {
-  margin: 0;
-  padding-top: 60px;
+.scroller-container .item-title{
+  color: #444;
   text-align: center;
-  color: #666;
-  font-style: normal;
-  font-variant-ligatures: normal;
-  font-variant-caps: normal;
-  font-variant-numeric: normal;
-  font-weight: normal;
-  font-stretch: normal;
-  font-size: 32px;
-  line-height: 48px;
-  margin-bottom: 10px;
+  line-height: 40px;
+  background-color: #fff;
 }
-.for-vue {
-  text-align: center;
-  color: #666;
-  margin-bottom: 40px;
+.scroller-container .item-content{
+  position:relative;
 }
-
-.plugin-name,
-.for-vue-js {
-  font-family: Candara, Calibri, Segoe, Segoe UI, Optima, Arial, sans-serif;
-}
-
 .row {
   display: flex;
   height: 30px;
@@ -63,7 +40,7 @@ body{
   align-items: center;
 }
 .grey-bg {
-  background-color: #eee;
+  background-color: #f7f7f7;;
 }
 .arrow-right {
   height: 16px;
@@ -72,7 +49,7 @@ body{
 }
 
 .info-position {
-  position: fixed;
+  position: absolute;
   right: 20px;
   bottom: 20px;
   width: 50px;

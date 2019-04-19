@@ -4,7 +4,10 @@ import Vue from 'vue'
 import App from './App'
 import FastClick from 'fastclick'
 
-import '@/css/base.css'
+import '@/css/normalize.styl'
+import '@/css/base.styl'
+import '@/css/border-1px.styl'
+
 
 import router from './router/index'
 import VueAppScroller from '../../src/index'
@@ -15,6 +18,7 @@ FastClick.attach(document.body)
 
 Vue.use(VueAppScroller);
 /* eslint-disable no-new */
+
 new Vue({
   el: '#app',
   router,
