@@ -9,17 +9,17 @@
           <button class="datetime-title-btn confrim" v-text="confirm.text" @click="confirmClick(confirm.clickHandler)"></button>
         </div>
         <div class="datetime-content">
-          <div class="flex-box" v-for="(item,index) in timeSpace" :key="index">
+          <div class="flex-box">
             <scroller 
               snappingType="center"
               :scrollingY="true"
               :snapping="snapping"
               :snappingComplete="snappingComplete"
-              :snappingSelect="currentSpace[index]"
-              :snappingListIndex="index"
-              :data="item">
+              :snappingSelect="0"
+              :snappingListIndex="0"
+              :data="data">
               <div class="scroller-content">
-                <div class="row" v-for="(value, key) in item" :key="key">{{ value }}</div>
+                <div class="row" v-for="(value, key) in data" :key="key">{{ value.key }}</div>
               </div>
             </scroller>
           </div>
@@ -33,7 +33,6 @@
   </transition>
 </template>
 <script>
-import date from './date.js'
 export default {
   props: {
     title: {
@@ -49,41 +48,9 @@ export default {
       type: Object,
       description:'确定文案及操作'
     },
-    type: {
-      type: String,
-      description:'组件选择的类型'
-    },
-    beginTimeArr: {
+    propData:{
       type: Array,
-      description:'开始时间数组'
-    },
-    currentTimeArr:{
-      type: Array,
-      description:'当前选中时间数组'
-    },
-    overTimeArr: {
-      type: Array,
-      description:'结束时间数组'
-    },
-    propCurrentSpace:{
-      type: Array,
-      description:'选中的日期索引'
-    },
-    propTimeSpace:{
-      type: Array,
-      description:'所有日期序列数组'
-    },
-    formatText:{
-      type: Array,
-      description:'在数字末尾添加的文字'
-    },
-    stepMinutes:{
-      type: Number,
-      description:'分钟显示步长'
-    },
-    stepSeconds:{
-      type: Number,
-      description:'秒数显示步长'
+      description:'所有的项'
     }
   },
   data() {
@@ -93,14 +60,13 @@ export default {
         width:90,
         height:40
       },
-      timeSpace:[[],[],[],[],[],[]],
-      currentSpace:this.propCurrentSpace,
-      currentTimeList:this.currentTimeArr
+      data:[],
+      selectIndex:0,
     };
   },
   created() {
     setTimeout(()=>{
-      this.timeSpace = this.propTimeSpace;
+      this.data = this.propData;
     },30)
   },
   methods: {
@@ -108,17 +74,7 @@ export default {
       e.preventDefault()
     },
     snappingComplete(e){
-      let select = this.timeSpace[e.listIndex][e.selectIndex];
-      this.currentTimeList[e.listIndex] = parseInt(select)
-      this.timeSpace = date.getTimeSpace(
-        this.type,
-        this.beginTimeArr,
-        this.currentTimeList,
-        this.overTimeArr,
-        this.formatText,
-        this.stepMinutes,
-        this.stepSeconds
-      )
+      this.selectIndex = e.selectIndex;
     },
     // 点击取消
     cancelClick(callback) {
@@ -127,39 +83,9 @@ export default {
     },
     // 点击确定
     confirmClick(callback){
-      let backArray = this.currentTimeList.concat([])
-      let backObj = this.parseDateTime(backArray)
-      callback(backObj);
+      let item = this.data[this.selectIndex]
+      callback(item);
       this.close();
-    },
-    // 格式化日期组
-    parseDateTime(backArray){
-      // 格式化
-      backArray = backArray.map(v=> v<10 ? `0${v}`:`${v}`);
-      let formatArray = backArray.map((v,i)=>`${v+this.formatText[i]}`)
-      let date = [];
-      let time = [];
-      // 先判断类型
-      switch(this.type){
-        case 'yyyy-mm-dd hh:mm:ss':
-        case 'yyyy-mm-dd hh:mm':
-        case 'yyyy-mm-dd hh':
-        case 'yyyy-mm-dd':
-          date = backArray.slice(0,3)
-          time = backArray.slice(3)
-          break;
-        case 'hh:mm:ss':
-        case 'hh:mm':
-          time = backArray.concat([])
-          break;
-      }
-      return {
-        line:`${date.join('-')} ${time.join(':')}`.trim(),
-        slash:`${date.join('/')} ${time.join(':')}`.trim(),
-        format:formatArray.join('').trim(),
-        point:`${date.join('.')} ${time.join(':')}`.trim(),
-        array:backArray,
-      }
     },
     // 关闭
     close(){

@@ -28,7 +28,7 @@
           </scroller>
         </div>
       </div>
-      <div class="item-title border-bottom-1px">返回对应索引  <span class="picker" @click="openDateTime">打开时间选择器</span></div>
+      <div class="item-title border-bottom-1px">返回对应索引</div>
       <div class="item-show border-bottom-1px">
         <div>{{snappingArray[0]}}</div>
         <div>{{snappingArray[1]}}</div>
@@ -98,14 +98,6 @@
     mounted() {
     },
     methods:{
-      openDateTime(){
-        dateTime.open({
-          onOkClick(e){
-            console.log(e)
-            alert(e)
-          }
-        })
-      },
       snappingComplete(e){
         let add = this.snappingArray.concat([])
         this.snappingArray.forEach((item,index) => {
@@ -120,10 +112,6 @@
 </script>
 <style lang="stylus">
   .snapping
-    .picker
-      font-size:14px;
-      color:red;
-      margin-left:20px;
     .item-show
       height 18px;
       display flex;

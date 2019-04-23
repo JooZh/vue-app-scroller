@@ -11,7 +11,6 @@
             <img src="../assets/arrow-right.png" class="arrow-right">
           </div>  
         </router-link>
-
         <router-link class="row" tag="label" to="/refresh">
           <span class="left">PullRefresh & ReachBottom</span>
           <div class="right">
@@ -26,24 +25,38 @@
             <img src="../assets/arrow-right.png" class="arrow-right">
           </div>
         </router-link>
-        <!-- <router-link class="row grey-bg" tag="label" to="/mousewheel">
-          <span class="left">MouseWheel</span>
-          <div class="right">
-            <span>【 鼠标滚动 】</span>
-            <img src="../assets/arrow-right.png" class="arrow-right">
-          </div>
-        </router-link> -->
-        <router-link class="row" tag="label" to="/snapping">
-          <span class="left">Snapping</span>
-          <div class="right">
-            <span>【 网格滑动 】</span>
-            <img src="../assets/arrow-right.png" class="arrow-right">
-          </div>
-        </router-link>
-        <router-link class="row grey-bg" tag="label" to="/paging">
+        <router-link class="row" tag="label" to="/paging">
           <span class="left">Paging</span>
           <div class="right">
             <span>【 滑动分页 】</span>
+            <img src="../assets/arrow-right.png" class="arrow-right">
+          </div>
+        </router-link>
+        <router-link class="row grey-bg" tag="label" to="/snapping">
+          <span class="left">Snapping</span>
+          <div class="right">
+            <span>【 滑动网格 】</span>
+            <img src="../assets/arrow-right.png" class="arrow-right">
+          </div>
+        </router-link>
+        <router-link class="row" tag="label" to="/snapping-components">
+          <span class="left">Snapping Components</span>
+          <div class="right">
+            <span>【 滑动组件 】</span>
+            <img src="../assets/arrow-right.png" class="arrow-right">
+          </div>
+        </router-link>
+        <!-- <router-link class="row grey-bg" tag="label" to="/snapping-layout">
+          <span class="left">Snapping Layout</span>
+          <div class="right">
+            <span>【 滑动布局 】</span>
+            <img src="../assets/arrow-right.png" class="arrow-right">
+          </div>
+        </router-link> -->
+        <router-link class="row grey-bg" tag="label" to="/mousewheel">
+          <span class="left">MouseWheel</span>
+          <div class="right">
+            <span>【 鼠标滚动 】</span>
             <img src="../assets/arrow-right.png" class="arrow-right">
           </div>
         </router-link>

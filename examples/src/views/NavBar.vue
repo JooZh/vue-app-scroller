@@ -30,7 +30,7 @@
   .nav-bar
     width: 100%;
     height: 44px;
-    background-color: #fff;
+    background-color: #f6f6f6;
     position: relative;
     z-index: 1000;
     .btn-back 

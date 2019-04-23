@@ -1,5 +1,5 @@
 /**
-* vue-app-effect v1.0.2
+* vue-app-effect v1.0.3
 * https://github.com/JooZh/vue-app-scroller
 * Released under the MIT License.
 */
@@ -568,7 +568,12 @@ var Scroller = function () {
           if (this._interruptedAnimation || this.isDragging) {
             this.options.scrollingComplete();
           }
-          this.scrollTo(this.scrollX, this.scrollY, true);
+
+          if (this.scrollY > 0 || this.scrollX > 0) {
+            this.scrollTo(this.scrollX, this.scrollY, true);
+          } else {
+            this._startDeceleration();
+          }
 
           if (this.refreshActive) {
             this.refreshActive = false;

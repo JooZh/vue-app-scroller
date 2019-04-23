@@ -9,70 +9,103 @@ const init = (propsData) => {
   }).$mount(document.createElement('div'));
 };
 
+// 无操作函数
 const NOOP = function () {};
 // 可选类型
-const dateTimeType = [
-  {
-    formatText:['年','月','日','时','分','秒'],
-    type:'yyyy-mm-dd hh:mm:ss', 
-  },{
-    formatText:['年','月','日','时','分'],
-    type:'yyyy-mm-dd hh:mm'
-  },{
-    formatText:['年','月','日','时'],
-    type:'yyyy-mm-dd hh', 
-  },{
-    formatText:['年','月','日'],
-    type:'yyyy-mm-dd', 
-  },{
-    formatText:['年','月'],
-    type:'yyyy-mm', 
-  },{
-    formatText:['时','分','秒'],
-    type:'hh:mm:ss', 
-  },{
-    formatText:['时','分'],
-    type:'hh:mm', 
-  }
-];
+const dateTimeType = date.dateTimeType
 // 默认参数
 const options = {
-  type: 'yyyy-mm-dd hh:mm:ss', 
-  beginTime:'2010-01-01 00:00:00',
-  overTime:'2059-12-31 23:59:00',
-  onOkClick:  NOOP,
-  onCancelClick:  NOOP,
+  type: '', 
+  beginTime:'',
+  overTime:'',
+  confirmClick: NOOP,
+  cancelClick: NOOP,
   cancelText: '取消',
   confirmText: '确定',
-  formatText: dateTimeType[1].formatText,
+  formatText: '',
   stepMinutes: 1,
   stepSeconds: 1
 };
-
-// 验证时间格式
-// const checkType = function(options){
-//   let beginType = dateTimeType.findIndex(item => options.beginTime.length === item.length);
-//   let currentType = dateTimeType.findIndex(item => options.currentTime.length === item.length);
-//   let overType = dateTimeType.findIndex(item => options.overTime.length === item.length);
-//   let notEmpty = beginType != -1 || overType != -1 || currentType != -1;
-//   let sameType = beginType == overType && overType == currentType && beginType == currentType;
-//   if(!(notEmpty && sameType)){
-//     throw new Error('传入时间格式不正确')
-//   }
-// }
-// 验证类型
-const matchType = function(options){
-  let type =  options.type.trim();
-  let index = dateTimeType.findIndex(item => item.type === type );
-  if(index === -1){
-    throw new Error('传入时间类型不正确')
-  }else{
-    options.formatText = dateTimeType[index].formatText
+// 验证时间
+const checkTime = function (type,timeStr){
+  let isTrue= false;
+  switch (type) {
+    case 'yyyy-mm-dd hh:mm:ss':
+      isTrue = date.checkTimeType.isFullDateTime(timeStr);
+      break;
+    case 'yyyy-mm-dd hh:mm':
+      isTrue = date.checkTimeType.isDateTimeMinute(timeStr);
+      break;
+    case 'yyyy-mm-dd hh':
+      isTrue = date.checkTimeType.isDateTimeHour(timeStr);
+      break;
+    case 'yyyy-mm-dd':
+      isTrue = date.checkTimeType.isDateDay(timeStr);
+      break;
+    case 'yyyy-mm':
+      isTrue = date.checkTimeType.isDateMonth(timeStr);
+      break;
+    case 'hh:mm:ss':
+      isTrue = date.checkTimeType.isFullTime(timeStr);
+      break;
+    case 'hh:mm':
+      isTrue = date.checkTimeType.isTime(timeStr);
+      break;
+  }
+  if(!isTrue){
+    throw new Error('传入时间格式不正确')
   }
 }
-
+// 验证参数
+const checkParams = function(params){
+  // 验证类型
+  if(!params.type) {
+    throw new Error('请指定类型 "type"')
+  }else{
+    matchType(params)
+  }
+  // 验证传入时间型格式
+  if(params.beginTime){
+    params.beginTime = params.beginTime.substr(0,params.type.length)
+    checkTime(params.type,params.beginTime)
+  }
+  if(params.overTime){
+    params.overTime = params.overTime.substr(0,params.type.length)
+    checkTime(params.type,params.overTime)
+  }
+  //验证当前选中时间 
+  if(params.currentTime){
+    params.currentTime = params.currentTime.substr(0,params.type.length)
+    checkTime(params.type,params.currentTime)
+  }else{
+    options.currentTime = date.getCurrentTime(params.type)
+  }
+}
+// 当前选中时间必须在开始时间和结束时间中间
+const checkTimeSlot = function(options){
+  // 当前选中时间必须在开始时间和结束时间中间
+  let bTime = options.beginTime.replace(/\.|\/|\-|\:|\s/g,'')
+  let oTime = options.overTime.replace(/\.|\/|\-|\:|\s/g,'')
+  let cTime = options.currentTime.replace(/\.|\/|\-|\:|\s/g,'')
+  if(Number(cTime) < Number(bTime)){
+    options.currentTime = options.beginTime
+  } else if(Number(cTime) > Number(oTime)){
+    options.currentTime = options.overTime
+  }
+}
+// 匹配类型
+const matchType = function(params){
+  let type =  params.type.trim();
+  let index = dateTimeType.findIndex(item => item.type === type );
+  if(index === -1){
+    throw new Error('传入类型不正确')
+  }else{
+    Object.assign(options,dateTimeType[index])
+  }
+}
+// 转化为数组
 const timeToArray = function(time){
-  return time.replace(/\-|\:|\s/g,',').split(',').map(item=>Number(item));
+  return time.replace(/\.|\/|\-|\:|\s/g,',').split(',').map(item=>Number(item));
 }
 // 获取初始化日期数组
 const getCurrentSpace = function(options){
@@ -111,20 +144,16 @@ const getCurrentSpace = function(options){
 
 const DateTime = {
   open(params = {}) {
-    // 验证传入类型格式
-    // matchType(params)
-    // 参数合并
-    if(!params.currentTime){
-      options.currentTime = date.getCurrentTime()
-    }
+    // 验证参数
+    checkParams(params)
+    // 合并参数
     for (let key in params) {
       if(params[key]){
         options[key] = params[key];
       }
     }
-    matchType(options)
-    // 验证开始时间和结束时间的正确性， 还没做
-    // checkType(options)
+    // 当前选中时间必须在开始时间和结束时间中间
+    checkTimeSlot(options)
     // 获取初始化日期数组
     let spaceData = getCurrentSpace(options)
     // 初始化组件
@@ -139,20 +168,14 @@ const DateTime = {
       formatText:options.formatText,
       stepMinutes:options.stepMinutes,
       stepSeconds:options.stepSeconds,
-      buttons: [{
-        text: options.cancelText,
-        clickHandler() {
-          instance.open = false;
-          options.onCancelClick.apply(this, arguments);
-        }
-      }, {
+      confirm:{
         text: options.confirmText,
-        primary: true,
-        clickHandler() {
-          instance.open = false;
-          options.onOkClick.apply(this, arguments);
-        }
-      }]
+        clickHandler:options.confirmClick
+      },
+      cancel:{
+        text: options.cancelText,
+        clickHandler:options.cancelClick
+      }
     });
     instance.open = options.open || true;
     document.body.appendChild(instance.$el);

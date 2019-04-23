@@ -157,7 +157,7 @@ export default {
         animationDuration: this.duration,
         bouncing: this.bouncing,                  // 开启回弹效果
         scrollingComplete: this.scrollingComplete,  // 滑动完成后的回调事件
-        snappingComplete:this.snappingComplete      // 选择完成后的回调事件 多用于 snapping
+        snappingComplete: this.snappingComplete      // 选择完成后的回调事件 多用于 snapping
       });
 
       // 数据发生变化后更新 dom 性能优化
@@ -172,10 +172,6 @@ export default {
           }
         })
       },{ deep: true})
-      // 数据发生变化后更新 dom 性能优化
-      // this.$watch('snappingSelect',(newData,oldData)=>{
-      //   this.initScroller()
-      // })
       // 根据是否绑定监听函数来判断是否调用
       !!this.onScroll && this.onScrollHandler();
       !!this.onPullRefresh && this.onPullRefreshHandler();

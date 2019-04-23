@@ -18,6 +18,7 @@
         <scroller 
           :scrollingX="true" 
           :paging="true"
+          :bouncing = "false"
           :data="itemsX">
           <div ref="scrollerx" class="scroller-content">
             <div class="row" v-for="(item, index) in itemsX" :class="{'grey-bg': index % 2 == 0}" :key="index">{{ item }}</div>

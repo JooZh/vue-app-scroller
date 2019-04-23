@@ -54,7 +54,6 @@ class Scroller {
     this.refreshActive = false      //现在释放事件时是否启用刷新进程
     this.reachBottomActive = false  //是否已经发送了触底事件
     this.snappingTypeInit = false   // 是否已经初始化了snapping type = center
-
     //  {Function} 
     this.refreshStartCallBack = null        //执行回调以启动实际刷新
     this.refreshDeactivateCallBack = null   //在停用时执行的回调。这是为了通知用户刷新被取消
@@ -409,7 +408,12 @@ class Scroller {
         if (this._interruptedAnimation || this.isDragging) {
           this.options.scrollingComplete();
         }
-        this.scrollTo(this.scrollX, this.scrollY, true, );
+
+        if(this.scrollY > 0 || this.scrollX > 0){
+          this.scrollTo(this.scrollX, this.scrollY, true);
+        }else{
+          this._startDeceleration();
+        }
         // Directly signalize deactivation (nothing todo on refresh?)
         // 直接对失活进行签名(在刷新时不做任何操作?)
         if (this.refreshActive) {
@@ -759,7 +763,6 @@ class Scroller {
    * param inMemory {Boolean?false} 是否不呈现当前步骤，而只将其保存在内存中。仅在内部使用!
    */
   _stepThroughDeceleration(render) {
-
     // 计算下一个滚动位置 增加减速到滚动位置
     let scrollX = this.scrollX + this.decelerationVelocityX;
     let scrollY = this.scrollY + this.decelerationVelocityY;
