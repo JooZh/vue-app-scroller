@@ -2,7 +2,7 @@
   <div>
     <nav-bar title="PullRefresh & ReachBottom"></nav-bar>
     <div class="scroller-container">
-      <scroller
+      <vue-app-scroller
         :scrollingY="true"  
         :onPullRefresh="refresh"
         :onReachBottom ="loadingMore"
@@ -12,7 +12,7 @@
           class="row" 
           :class="{'grey-bg': index % 2 == 0}" 
           :key="index">{{ item }}</div>
-      </scroller>
+      </vue-app-scroller>
     </div>
   </div>
 </template>

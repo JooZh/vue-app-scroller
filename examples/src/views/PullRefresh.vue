@@ -2,7 +2,7 @@
   <div>
     <nav-bar title="PullRefresh"></nav-bar>
     <div class="scroller-container">
-      <scroller
+      <vue-app-scroller
         :scrollingY="true"  
         :onPullRefresh="refresh"
         :data="items">
@@ -14,7 +14,7 @@
           :key="index">
           {{ item }}
         </div>
-      </scroller>
+      </vue-app-scroller>
     </div>
   </div>
 </template>

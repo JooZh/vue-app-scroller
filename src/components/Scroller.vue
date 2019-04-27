@@ -24,8 +24,9 @@
     </div>
   </div>
 </template>
+
 <script>
-import Scroller from '../core/scroller.js'
+import Scroller from '../core/scroller-v1.0.4.js'
 import Spinner from './Spinner.vue'
 import Arrow from './Arrow.vue'
 
@@ -63,22 +64,22 @@ export default {
       description:'是否开启鼠标滚动'
     },
     snapping:{
-      type: [Boolean,Number,Object],
+      type: [Boolean,Number,Array],
       default: false,
       description:'是否开启像素网格移动'
     },
     snappingType:{
       type: String,
       default: 'default',
-      description:'snapping使用类型 [default,center]'
+      description:'snapping使用类型 [default,select]'
     },
     snappingSelect:{
-      type: [String,Number],
+      type: Number,
       default: 0,
       description:'默认选中的值'
     },
     snappingListIndex:{
-      type: [String,Number],
+      type: Number,
       default: 0,
       description:'当前的组序列'
     },
@@ -104,12 +105,12 @@ export default {
     },
     scrollingComplete:{
       type: Function,
-      default(){return function(){}},
+      default: (()=>function(){})(),
       description:'滑动完成后的回调'
     },
     snappingComplete:{
       type: Function,
-      default(){return function(){}},
+      default: (()=>function(){})(),
       description:'选择完成后的回调'
     }
   },
@@ -119,7 +120,6 @@ export default {
   },
   data(){
     return {
-      ready:false,
       scroller:null,      // Scroller 实例
       container:null, 
       content:null,
@@ -128,15 +128,15 @@ export default {
     }
   },
   mounted(){
-    this.initScroller();
+    this.init();
   },
   // 对 keep alive激活组件使用
   activated () {
-    this.scroller.setDimensions()
+    this.scroller.refresh()
   },
   methods:{
     // 初始化
-    initScroller(){
+    init(){
       // 得到需要的 dom
       this.container = this.$refs.container;
       this.content = this.$refs.content;
@@ -159,29 +159,27 @@ export default {
         scrollingComplete: this.scrollingComplete,  // 滑动完成后的回调事件
         snappingComplete: this.snappingComplete      // 选择完成后的回调事件 多用于 snapping
       });
-
       // 数据发生变化后更新 dom 性能优化
       this.$watch('data',(newData,oldData)=>{
         this.$nextTick(()=>{
           //重置加载状态
           if(newData.length === 0 ){
             this.showLoading = true
-          }
-          if(newData.length !== 0  ){
-            this.refreshScroller()
+          }else{
+            this.refresh()
           }
         })
-      },{ deep: true})
+      },{ deep: true});
+      // console.log(this.scroller)
       // 根据是否绑定监听函数来判断是否调用
       !!this.onScroll && this.onScrollHandler();
       !!this.onPullRefresh && this.onPullRefreshHandler();
       !!this.onReachBottom && this.onReachBottomHandler();
-      !!this.snapping && this.setSnapping();
     },
     // 数据更新下后 调用刷新
-    refreshScroller(){
+    refresh(){
       this.getContentWidth()
-      this.scroller.setDimensions()
+      this.scroller.refresh()
     },
     // 获取横向滚动的数据
     getContentWidth(){
@@ -197,9 +195,6 @@ export default {
         this.content.style.width = Math.ceil(widths)+'px';
       }
     },
-    /**
-     * 事件处理
-     */
     // 监听滚动事件处理
     onScrollHandler(){
       if(!!this.onScroll){
@@ -238,15 +233,25 @@ export default {
         })
       }
     },
-    // 设置像素网格移动
-    setSnapping(){
-      if(!!this.snapping){
-        if(typeof this.snapping === 'number'){
-          this.scroller.setSnapSize(this.snapping,this.snapping)
-        }else if(typeof this.snapping === 'object'){
-          this.scroller.setSnapSize(this.snapping.width,this.snapping.height)
-        }
-      }
+    // 获取属性
+    getAttr(key){
+      return this.scroller[key]
+    },
+    // 设置属性
+    setAttr(key,value){
+      this.scroller[key] = value 
+    },
+    // 滚动到
+    scrollTo(x,y,animate){
+      this.scroller.scrollTo(x, y,animate)
+    },
+    // 滚动到
+    publish(x,y,animate){
+      this.scroller.publish(x, y,animate)
+    },
+    // 停止动画
+    stopScroll(){
+      this.scroller.stopScroll()
     }
   }
 }

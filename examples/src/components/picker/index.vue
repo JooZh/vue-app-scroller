@@ -10,8 +10,8 @@
         </div>
         <div class="datetime-content">
           <div class="flex-box">
-            <scroller 
-              snappingType="center"
+            <vue-app-scroller 
+              snappingType="select"
               :scrollingY="true"
               :snapping="snapping"
               :snappingComplete="snappingComplete"
@@ -21,7 +21,7 @@
               <div class="scroller-content">
                 <div class="row" v-for="(value, key) in data" :key="key">{{ value.key }}</div>
               </div>
-            </scroller>
+            </vue-app-scroller>
           </div>
           <div class="shade"></div>
           <div class="indicator">
@@ -56,10 +56,7 @@ export default {
   data() {
     return {
       open: false,
-      snapping:{
-        width:90,
-        height:40
-      },
+      snapping:[90,40],
       data:[],
       selectIndex:0,
     };

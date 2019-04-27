@@ -2,7 +2,7 @@
   <div>
     <nav-bar title="ReachBottom"></nav-bar>
     <div class="scroller-container">
-      <scroller
+      <vue-app-scroller
         :scrollingY="true"  
         :onReachBottom ="loadingMore"
         :data="items">
@@ -14,7 +14,7 @@
           :key="index">
           {{ item }}
         </div>
-      </scroller>
+      </vue-app-scroller>
     </div>
   </div>
 </template>

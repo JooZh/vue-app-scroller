@@ -4,7 +4,7 @@ import Scroller from './components/Scroller.vue'
 function install (Vue) {
   if (install.installed) return
   install.installed = true
-  Vue.component('scroller', Scroller)
+  Vue.component('vue-app-scroller', Scroller)
 }
 
 const VueAppScroller = {

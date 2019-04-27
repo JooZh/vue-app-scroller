@@ -2,7 +2,7 @@
   <div>
     <nav-bar title="Click"></nav-bar>
     <div class="scroller-container">
-      <scroller :scrollingY="true" :data="items">
+      <vue-app-scroller :scrollingY="true" :data="items">
         <div 
           v-for="(item, index) in items" 
           class="row" 
@@ -11,12 +11,13 @@
           :key="index">
           {{ item }}
         </div>
-      </scroller>
+      </vue-app-scroller>
     </div>
   </div>
 </template>
 <script>
   import NavBar from './NavBar.vue'
+  import toast from '../components/toast/index.js'
   export default {
     components: {
       NavBar
@@ -37,7 +38,10 @@
     },
     methods:{
       clickHandle(e){
-        alert('点击了：'+e)
+        toast.show({
+          content:'点击了'+e,
+          timeout: 1000
+        })
       }
     }
   }

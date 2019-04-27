@@ -1,6 +1,6 @@
 <template>
   <div class="home-container">
-    <scroller :scrollingY="true">
+    <vue-app-scroller :scrollingY="true">
       <div class="scroller-content">
         <h1 class="plugin-name">Vue-App-Scroller</h1>
         <p class="for-vue">for Vue.js 2.0</p>
@@ -46,13 +46,20 @@
             <img src="../assets/arrow-right.png" class="arrow-right">
           </div>
         </router-link>
-        <!-- <router-link class="row grey-bg" tag="label" to="/snapping-layout">
-          <span class="left">Snapping Layout</span>
+        <router-link class="row grey-bg" tag="label" to="/nesting">
+          <span class="left">Nesting Layout</span>
           <div class="right">
-            <span>【 滑动布局 】</span>
+            <span>【 嵌套滚动 】</span>
             <img src="../assets/arrow-right.png" class="arrow-right">
           </div>
-        </router-link> -->
+        </router-link>
+        <router-link class="row" tag="label" to="/ceiling">
+          <span class="left">Ceiling Layout</span>
+          <div class="right">
+            <span>【 吸顶效果 】</span>
+            <img src="../assets/arrow-right.png" class="arrow-right">
+          </div>
+        </router-link>
         <router-link class="row grey-bg" tag="label" to="/mousewheel">
           <span class="left">MouseWheel</span>
           <div class="right">
@@ -61,7 +68,7 @@
           </div>
         </router-link>
       </div>
-    </scroller>
+    </vue-app-scroller>
   </div>
 </template>
 

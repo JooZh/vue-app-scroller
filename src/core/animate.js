@@ -9,7 +9,6 @@ const Animate = (global => {
   let animate = {
     /**
      * A requestAnimationFrame wrapper / polyfill.
-     *
      * param callback {Function} 要在下一次重新绘制之前调用的回调。
      * param root {HTMLElement} 用于重新绘制的根元素
      */
@@ -66,19 +65,21 @@ const Animate = (global => {
       };
     })(),
     /**
-     * 停止当前动画。
+     * 主动 停止当前动画。
      * id {Integer} 唯一动画 Id
      * return {Boolean} 是否停止动画(也就是说，之前正在运行)
      */
     stop(id) {
+      // console.log(id)
       let cleared = running[id] != null;
       if (cleared) {
         running[id] = null;
       }
+      // console.log('stop')
       return cleared;
     },
     /**
-     * 给定的动画是否仍在运行。
+     * 当前是否有动画正在运行
      * id {Integer} 唯一动画 Id
      * return {Boolean} 动画是否仍在运行
      */
@@ -96,6 +97,7 @@ const Animate = (global => {
      * return {Integer} 标识符的动画。可以随时用来阻止它。
      */
     start(stepCallback, verifyCallback, completedCallback, duration, easingMethod, root) {
+      // console.log('start')
       let start = time();
       let lastFrame = start;
       let percent = 0;

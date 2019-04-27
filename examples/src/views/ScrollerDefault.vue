@@ -4,35 +4,35 @@
     <div class="scroller-container">
       <div class="item-title border-bottom-1px">纵向滚动-监听滚动位置</div>
       <div class="item-content scroll-y-bd border-bottom-1px">
-        <scroller :scrollingY="true" :onScroll="scrollY" :data="itemsY">
+        <vue-app-scroller :scrollingY="scrollingY" :onScroll="scrollY" :data="itemsY">
           <div class="scroller-content">
             <div class="row" v-for="(item, index) in itemsY" :class="{'grey-bg': index % 2 == 0}" :key="index">{{ item }}</div>
           </div>
-        </scroller>
+        </vue-app-scroller>
         <div class="info-position">{{ Y.x + ',' + Y.y }}</div>
       </div>
       <div class="item-title border-bottom-1px">横向滚动-监听滚动位置[1]</div>
       <div class="item-content scroll-x-bd border-bottom-1px">
         <div class="line">
-          <scroller :onScroll="scrollX" :scrollingX="true" :data="itemsX">
+          <vue-app-scroller :onScroll="scrollX" :scrollingX="true" :data="itemsX">
             <div class="lists">
               <div v-for="(item, index) in itemsX" class="list" :key="index">{{ item }}</div>
             </div>
-          </scroller>
+          </vue-app-scroller>
         </div>
         <div class="line color">
-          <scroller :scrollingX="true" :data="itemsX">
+          <vue-app-scroller :scrollingX="true" :data="itemsX">
             <div class="lists">
               <div v-for="(item, index) in itemsX" class="list" :key="index">{{ item }}</div>
             </div>
-          </scroller>
+          </vue-app-scroller>
         </div>
         <div class="line">
-          <scroller :scrollingX="true" :data="itemsX">
+          <vue-app-scroller :scrollingX="true" :data="itemsX">
             <div class="lists">
               <div v-for="(item, index) in itemsX" class="list" :key="index">{{ item }}</div>
             </div>
-          </scroller>
+          </vue-app-scroller>
         </div>
         <div class="info-position">{{ X.x + ',' + X.y }}</div>
       </div>
@@ -49,6 +49,7 @@
     },
     data () {
       return {
+        scrollingY:true,
         isRefresh:false,
         itemsY: [],
         itemsX: [],

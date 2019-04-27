@@ -1,5 +1,5 @@
 /**
-* vue-app-effect v1.0.3
+* vue-app-scroller v1.0.4
 * https://github.com/JooZh/vue-app-scroller
 * Released under the MIT License.
 */
@@ -71,6 +71,7 @@ var Animate = function (global) {
       if (cleared) {
         running[id] = null;
       }
+
       return cleared;
     },
     isRunning: function isRunning(id) {
@@ -144,7 +145,7 @@ var Animate = function (global) {
 var Render = function Render(content) {
   var global = window;
   var docStyle = document.documentElement.style;
-  var engine;
+  var engine = void 0;
   if (global.opera && Object.prototype.toString.call(opera) === '[object Opera]') {
     engine = 'presto';
   } else if ('MozAppearance' in docStyle) {
@@ -162,23 +163,18 @@ var Render = function Render(content) {
   }[engine];
 
   var helperElem = document.createElement("div");
-  var undef;
-
+  var undef = void 0;
   var perspectiveProperty = vendorPrefix + "Perspective";
   var transformProperty = vendorPrefix + "Transform";
-
   if (helperElem.style[perspectiveProperty] !== undef) {
-
     return function (left, top) {
       content.style[transformProperty] = 'translate3d(' + -left + 'px,' + -top + 'px,0)';
     };
   } else if (helperElem.style[transformProperty] !== undef) {
-
     return function (left, top) {
       content.style[transformProperty] = 'translate(' + -left + 'px,' + -top + 'px)';
     };
   } else {
-
     return function (left, top) {
       content.style.marginLeft = left ? -left + 'px' : '';
       content.style.marginTop = top ? -top + 'px' : '';
@@ -194,7 +190,9 @@ var Scroller = function () {
   function Scroller(renderDom, options) {
     _classCallCheck(this, Scroller);
 
-    this.NOOP = function () {};
+    this.NOOP = function () {
+      console.log('s');
+    };
 
     this.handles = {
       scroll: [],
@@ -225,76 +223,20 @@ var Scroller = function () {
       this.options[key] = options[key];
     }
 
-    this.container = renderDom.parentNode;
-    this.content = renderDom;
-    this.contentChildslength = 0;
-    this.render = Render(this.content);
-    this.animate = Animate;
-    this.isSingleTouch = false;
-    this.isTracking = false;
-    this.completeDeceleration = false;
-    this.isDragging = false;
-    this.isDecelerating = false;
-    this.isAnimating = false;
-    this.enableScrollX = false;
-    this.enableScrollY = false;
-    this.refreshActive = false;
-    this.reachBottomActive = false;
-    this.snappingTypeInit = false;
-    this.refreshStartCallBack = null;
-    this.refreshDeactivateCallBack = null;
-    this.refreshActivateCallBack = null;
-    this.scrollX = 0;
-    this.scrollY = 0;
-    this.minWisthScrollX = 0;
-    this.minHeightScrollY = 0;
-    this.maxWisthScrollX = 0;
-    this.maxHeightScrollY = 0;
-    this.prevScrollX = 0;
-    this.prevScrollY = 0;
+    this._initScrollAttr(renderDom);
 
-    this.scheduledX = 0;
-    this.scheduledY = 0;
-    this.lastTouchX = 0;
-    this.lastTouchY = 0;
-    this.decelerationVelocityX = 0;
-    this.decelerationVelocityY = 0;
+    this._setSnapSize(this.options.snapping);
 
-    this.refreshHeight = 0;
-    this.loadingHeight = 0;
-    this.contentWidth = 0;
-    this.contentHeight = 0;
-    this.containerWidth = 0;
-    this.containerHeight = 0;
-    this.snapWidth = 50;
-    this.snapHeight = 50;
-
-    this.minDecelerationScrollX = 0;
-    this.minDecelerationScrollY = 0;
-    this.maxDecelerationScrollX = 0;
-    this.maxDecelerationScrollY = 0;
-    this.lastTouchMoveTime = null;
-    this.positionsArray = null;
-    this.initEventListener(this.container);
+    this._initEventListener(this.container);
   }
 
   _createClass(Scroller, [{
-    key: 'easeOutCubic',
-    value: function easeOutCubic(pos) {
-      return Math.pow(pos - 1, 3) + 1;
-    }
-  }, {
-    key: 'easeInOutCubic',
-    value: function easeInOutCubic(pos) {
-      if ((pos /= 0.5) < 1) {
-        return 0.5 * Math.pow(pos, 3);
-      }
-      return 0.5 * (Math.pow(pos - 2, 3) + 2);
-    }
-  }, {
-    key: 'initEventListener',
-    value: function initEventListener(element) {
+    key: '_initEventListener',
+    value: function _initEventListener(element) {
       var _this = this;
+
+      this.enableScrollX = this.options.scrollingX;
+      this.enableScrollY = this.options.scrollingY;
 
       var mousedown = false;
 
@@ -354,247 +296,74 @@ var Scroller = function () {
       }
     }
   }, {
-    key: '_isTouches',
-    value: function _isTouches(touches) {
-      if (touches.length == null) {
-        throw new Error("Invalid touch list: " + touches);
-      }
-    }
-  }, {
-    key: '_isDateType',
-    value: function _isDateType(timeStamp) {
-      if (timeStamp instanceof Date) {
-        timeStamp = timeStamp.valueOf();
-      }
-      if (typeof timeStamp !== "number") {
-        throw new Error("Invalid timestamp value: " + timeStamp);
-      }
-    }
-  }, {
-    key: 'doTouchStart',
-    value: function doTouchStart(touches, timeStamp) {
-      this._isTouches(touches);
-      this._isDateType(timeStamp);
-
-      this._interruptedAnimation = true;
-
-      if (this.isDecelerating) {
-        this.animate.stop(this.isDecelerating);
-        this.isDecelerating = false;
-        this._interruptedAnimation = true;
-      }
-
-      if (this.isAnimating) {
-        this.animate.stop(this.isAnimating);
-        this.isAnimating = false;
-        this._interruptedAnimation = true;
-      }
-
-      var currentTouchX = 0;
-      var currentTouchY = 0;
-      var isSingleTouch = touches.length === 1;
-      if (isSingleTouch) {
-        currentTouchX = touches[0].pageX;
-        currentTouchY = touches[0].pageY;
-      } else {
-        currentTouchX = Math.abs(touches[0].pageX + touches[1].pageX) / 2;
-        currentTouchY = Math.abs(touches[0].pageY + touches[1].pageY) / 2;
-      }
-
-      this.lastTouchX = currentTouchX;
-      this.lastTouchY = currentTouchY;
-
-      this.lastTouchMoveTime = timeStamp;
-
-      this.enableScrollX = !isSingleTouch && this.options.scrollingX;
-      this.enableScrollY = !isSingleTouch && this.options.scrollingY;
-
-      this.isTracking = true;
-
-      this.completeDeceleration = false;
-
-      this.isDragging = !isSingleTouch;
-
-      this.isSingleTouch = isSingleTouch;
-
-      this.positionsArray = [];
-    }
-  }, {
-    key: 'doTouchMove',
-    value: function doTouchMove(touches, timeStamp) {
-      this._isTouches(touches);
-      this._isDateType(timeStamp);
-
-      if (!this.isTracking) {
-        return;
-      }
-      var currentTouchX = 0;
-      var currentTouchY = 0;
-
-      if (touches.length === 2) {
-        currentTouchX = Math.abs(touches[0].pageX + touches[1].pageX) / 2;
-        currentTouchY = Math.abs(touches[0].pageY + touches[1].pageY) / 2;
-      } else {
-        currentTouchX = touches[0].pageX;
-        currentTouchY = touches[0].pageY;
-      }
-
-      if (this.isDragging) {
-        var moveX = currentTouchX - this.lastTouchX;
-        var moveY = currentTouchY - this.lastTouchY;
-
-        if (this.enableScrollX) {
-          this.scrollX -= moveX * this.options.speedMultiplier;
-          if (this.scrollX > this.maxWisthScrollX || this.scrollX < 0) {
-            if (this.options.bouncing) {
-              this.scrollX += moveX / 2 * this.options.speedMultiplier;
-            } else if (this.scrollX > this.maxWisthScrollX) {
-              this.scrollX = this.maxWisthScrollX;
-            } else {
-              this.scrollX = 0;
-            }
-          }
-        }
-
-        if (this.enableScrollY) {
-          this.scrollY -= moveY * this.options.speedMultiplier;
-          if (this.scrollY > this.maxWisthScrollX || this.scrollY < 0) {
-            if (this.options.bouncing) {
-              this.scrollY += moveY / 2 * this.options.speedMultiplier;
-
-              if (!this.enableScrollX && this.refreshHeight != null) {
-                if (!this.refreshActive && this.scrollY <= -this.refreshHeight) {
-                  this.refreshActive = true;
-                  if (this.refreshActivateCallBack) {
-                    this.refreshActivateCallBack();
-                  }
-                } else if (this.refreshActive && this.scrollY > -this.refreshHeight) {
-                  this.refreshActive = false;
-                  if (this.refreshDeactivateCallBack) {
-                    this.refreshDeactivateCallBack();
-                  }
-                }
-              }
-            } else if (this.scrollY > this.maxWisthScrollX) {
-              this.scrollY = this.maxWisthScrollX;
-            } else {
-              this.scrollY = 0;
-            }
-          }
-        }
-
-        if (this.positionsArray.length > 60) {
-          this.positionsArray.splice(0, 30);
-        }
-
-        this.positionsArray.push(this.scrollX, this.scrollY, timeStamp);
-
-        this._publish(this.scrollX, this.scrollY);
-      } else {
-        var minTrackingForScroll = 0;
-        var minTrackingForDrag = 5;
-
-        var distanceX = Math.abs(currentTouchX - this.lastTouchX);
-        var distanceY = Math.abs(currentTouchY - this.lastTouchY);
-        this.enableScrollX = this.options.scrollingX && distanceX >= minTrackingForScroll;
-        this.enableScrollY = this.options.scrollingY && distanceY >= minTrackingForScroll;
-
-        this.positionsArray.push(this.scrollX, this.scrollY, timeStamp);
-
-        var isEnableScroll = this.enableScrollX || this.enableScrollY;
-        var isDistance = distanceX >= minTrackingForDrag || distanceY >= minTrackingForDrag;
-        this.isDragging = isEnableScroll && isDistance;
-
-        if (this.isDragging) {
-          this._interruptedAnimation = false;
-        }
-      }
-
-      this.lastTouchX = currentTouchX;
-      this.lastTouchY = currentTouchY;
-      this.lastTouchMoveTime = timeStamp;
-    }
-  }, {
-    key: 'doTouchEnd',
-    value: function doTouchEnd(timeStamp) {
-      this._isDateType(timeStamp);
-
-      if (!this.isTracking) {
-        return;
-      }
-
+    key: '_initScrollAttr',
+    value: function _initScrollAttr(renderDom) {
+      this.content = renderDom;
+      this.container = renderDom.parentNode;
+      this.render = Render(this.content);
+      this.animate = Animate;
+      this.scrollDirection = '';
       this.isTracking = false;
+      this.completeDeceleration = false;
+      this.isDragging = false;
+      this.isDecelerating = false;
+      this.isAnimating = false;
+      this.enableScrollX = false;
+      this.enableScrollY = false;
+      this.refreshActive = false;
+      this.reachBottomActive = false;
+      this.snappingTypeInit = false;
+      this.interruptedAnimation = true;
 
-      if (this.isDragging) {
-        this.isDragging = false;
+      this.refreshStartCallBack = null;
+      this.refreshDeactivateCallBack = null;
+      this.refreshActivateCallBack = null;
+      this.scrollX = 0;
+      this.scrollY = 0;
+      this.minWidthScrollX = 0;
+      this.minHeightScrollY = 0;
+      this.maxWidthScrollX = 0;
+      this.maxHeightScrollY = 0;
+      this.prevScrollX = 0;
+      this.prevScrollY = 0;
 
-        if (this.isSingleTouch && this.options.animating && timeStamp - this.lastTouchMoveTime <= 100) {
-          var endPos = this.positionsArray.length - 1;
-          var startPos = endPos;
+      this.scheduledX = 0;
+      this.scheduledY = 0;
+      this.lastTouchX = 0;
+      this.lastTouchY = 0;
+      this.decelerationVelocityX = 0;
+      this.decelerationVelocityY = 0;
 
-          for (var i = endPos; i > 0 && this.positionsArray[i] > this.lastTouchMoveTime - 100; i -= 3) {
-            startPos = i;
-          }
+      this.refreshHeight = 0;
+      this.loadingHeight = 0;
+      this.contentWidth = 0;
+      this.contentHeight = 0;
+      this.containerWidth = 0;
+      this.containerHeight = 0;
+      this.snapWidth = 50;
+      this.snapHeight = 50;
 
-          if (startPos !== endPos) {
-            var timeOffset = this.positionsArray[endPos] - this.positionsArray[startPos];
-            var movedX = this.scrollX - this.positionsArray[startPos - 2];
-            var movedY = this.scrollY - this.positionsArray[startPos - 1];
-
-            this.decelerationVelocityX = movedX / timeOffset * (1000 / 60);
-            this.decelerationVelocityY = movedY / timeOffset * (1000 / 60);
-
-            var minVelocityToStartDeceleration = this.options.paging || this.options.snapping ? 4 : 1;
-
-            var isVelocityX = Math.abs(this.decelerationVelocityX) > minVelocityToStartDeceleration;
-            var isVelocityY = Math.abs(this.decelerationVelocityY) > minVelocityToStartDeceleration;
-
-            if (isVelocityX || isVelocityY) {
-              if (!this.refreshActive) {
-                this._startDeceleration(timeStamp);
-              }
-            } else {
-              this.options.scrollingComplete();
-            }
-          } else {
-            this.options.scrollingComplete();
-          }
-        } else if (timeStamp - this.lastTouchMoveTime > 100) {
-          this.options.scrollingComplete();
-        }
-      }
-
-      if (!this.isDecelerating) {
-        if (this.refreshActive && this.refreshStartCallBack) {
-          this._publish(this.scrollX, -this.refreshHeight, true);
-          if (this.refreshStartCallBack) {
-            this.refreshStartCallBack();
-          }
-        } else {
-          if (this._interruptedAnimation || this.isDragging) {
-            this.options.scrollingComplete();
-          }
-
-          if (this.scrollY > 0 || this.scrollX > 0) {
-            this.scrollTo(this.scrollX, this.scrollY, true);
-          } else {
-            this._startDeceleration();
-          }
-
-          if (this.refreshActive) {
-            this.refreshActive = false;
-            if (this.refreshDeactivateCallBack) {
-              this.refreshDeactivateCallBack();
-            }
-          }
-        }
-      }
-
-      this.positionsArray.length = 0;
+      this.minDecelerationScrollX = 0;
+      this.minDecelerationScrollY = 0;
+      this.maxDecelerationScrollX = 0;
+      this.maxDecelerationScrollY = 0;
+      this.lastTouchTime = null;
+      this.positionsArray = null;
     }
   }, {
-    key: 'setDimensions',
-    value: function setDimensions() {
+    key: '_setSnapSize',
+    value: function _setSnapSize(snapping) {
+      if (typeof snapping === 'number') {
+        this.snapWidth = snapping;
+        this.snapHeight = snapping;
+      } else if (Array.isArray(snapping)) {
+        this.snapWidth = snapping[0];
+        this.snapHeight = snapping[1];
+      }
+    }
+  }, {
+    key: '_setDimensions',
+    value: function _setDimensions() {
       var containerWidth = this.container.offsetWidth;
       var containerHeight = this.container.offsetHeight;
       var contentWidth = this.content.offsetWidth;
@@ -619,10 +388,10 @@ var Scroller = function () {
       this.refreshHeight = this.options.isPullRefresh ? childrens[0].offsetHeight : 0;
       this.loadingHeight = this.options.isReachBottom ? childrens[childrens.length - 1].offsetHeight : 0;
 
-      this.maxWisthScrollX = Math.max(this.contentWidth - this.containerWidth, 0);
+      this.maxWidthScrollX = Math.max(this.contentWidth - this.containerWidth, 0);
       this.maxHeightScrollY = maxScrollY - this.refreshHeight;
 
-      if (this.options.snappingType === 'center') {
+      if (this.options.snappingType === 'select') {
         var itemCount = Math.round(this.containerHeight / this.snapHeight);
         this.minHeightScrollY = -this.snapHeight * Math.floor(itemCount / 2);
         this.maxHeightScrollY = this.minHeightScrollY + (childrens[1].children.length - 1) * this.snapHeight;
@@ -646,13 +415,292 @@ var Scroller = function () {
         }
       }
 
-      this.scrollTo(this.scrollX, this.scrollY, true);
+      this._scrollTo(this.scrollX, this.scrollY, true);
     }
   }, {
-    key: 'setSnapSize',
-    value: function setSnapSize(width, height) {
-      this.snapWidth = width;
-      this.snapHeight = height;
+    key: '_easeOutCubic',
+    value: function _easeOutCubic(pos) {
+      return Math.pow(pos - 1, 3) + 1;
+    }
+  }, {
+    key: '_easeInOutCubic',
+    value: function _easeInOutCubic(pos) {
+      if ((pos /= 0.5) < 1) {
+        return 0.5 * Math.pow(pos, 3);
+      }
+      return 0.5 * (Math.pow(pos - 2, 3) + 2);
+    }
+  }, {
+    key: 'doTouchStart',
+    value: function doTouchStart(touches, timeStamp) {
+      this._isTouches(touches);
+      this._isTouchesTime(timeStamp);
+
+      this.isTracking = true;
+
+      this.stopScroll();
+
+      this.lastTouchX = touches[0].pageX;
+      this.lastTouchY = touches[0].pageY;
+
+      this.lastTouchTime = timeStamp;
+    }
+  }, {
+    key: 'doTouchMove',
+    value: function doTouchMove(touches, timeStamp) {
+      this._isTouches(touches);
+      this._isTouchesTime(timeStamp);
+      if (!this.isTracking) {
+        return;
+      }
+
+      var currentTouchX = touches[0].pageX;
+      var currentTouchY = touches[0].pageY;
+
+      this._doTouchMoveDirection(currentTouchX, currentTouchY);
+
+      if (this.isDragging) {
+        var moveX = currentTouchX - this.lastTouchX;
+        var moveY = currentTouchY - this.lastTouchY;
+
+        if (this.enableScrollX) {
+          this._doTouchMoveActive(moveX, 'X');
+        }
+
+        if (this.enableScrollY) {
+          this._doTouchMoveActive(moveY, 'Y');
+        }
+
+        if (this.positionsArray.length > 60) {
+          this.positionsArray.splice(0, 30);
+        }
+
+        this.positionsArray.push(this.scrollX, this.scrollY, timeStamp);
+
+        this._publish(this.scrollX, this.scrollY);
+      } else {
+        var minMoveDistance = 5;
+        var distanceX = Math.abs(currentTouchX - this.lastTouchX);
+        var distanceY = Math.abs(currentTouchY - this.lastTouchY);
+        this.isDragging = distanceX >= minMoveDistance || distanceY >= minMoveDistance;
+
+        if (this.isDragging) {
+          this.interruptedAnimation = false;
+        }
+      }
+
+      this.lastTouchX = currentTouchX;
+      this.lastTouchY = currentTouchY;
+      this.lastTouchTime = timeStamp;
+    }
+  }, {
+    key: 'doTouchEnd',
+    value: function doTouchEnd(timeStamp) {
+      this._isTouchesTime(timeStamp);
+      if (!this.isTracking) {
+        return;
+      }
+
+      this.isTracking = false;
+
+      if (this.isDragging) {
+        this.isDragging = false;
+
+        if (this.options.animating && timeStamp - this.lastTouchTime <= 100) {
+          var isDeceleration = this._doTouchEndHasDeceleration();
+          if (isDeceleration) {
+            if (!this.refreshActive) {
+              this._startDeceleration(timeStamp);
+            }
+          } else {
+            this._scrollingComplete();
+          }
+        } else if (timeStamp - this.lastTouchTime > 100) {
+          this._scrollingComplete();
+        }
+      }
+
+      if (!this.isDecelerating) {
+        if (this.refreshActive && this.refreshStartCallBack) {
+          this._publish(this.scrollX, -this.refreshHeight, true);
+          if (this.refreshStartCallBack) {
+            this.refreshStartCallBack();
+          }
+        } else {
+          if (this.interruptedAnimation || this.isDragging) {
+            this._scrollingComplete();
+          }
+          if (this.scrollY > 0 || this.scrollX > 0) {
+            this._scrollTo(this.scrollX, this.scrollY, true);
+          } else {
+            this._startDeceleration();
+          }
+
+          if (this.refreshActive) {
+            this.refreshActive = false;
+            if (this.refreshDeactivateCallBack) {
+              this.refreshDeactivateCallBack();
+            }
+          }
+        }
+      }
+
+      this.positionsArray.length = 0;
+    }
+  }, {
+    key: '_isTouches',
+    value: function _isTouches(touches) {
+      if (touches.length == null) {
+        throw new Error("Invalid touch list: " + touches);
+      }
+    }
+  }, {
+    key: '_isTouchesTime',
+    value: function _isTouchesTime(timeStamp) {
+      if (timeStamp instanceof Date) {
+        timeStamp = timeStamp.valueOf();
+      }
+      if (typeof timeStamp !== "number") {
+        throw new Error("Invalid timestamp value: " + timeStamp);
+      }
+    }
+  }, {
+    key: '_doTouchMoveActive',
+    value: function _doTouchMoveActive(move, D) {
+      this['scroll' + D] -= move * this.options.speedMultiplier;
+      if (this['scroll' + D] > this['maxWidthScroll' + D] || this['scroll' + D] < 0) {
+        if (this.options.bouncing) {
+          this['scroll' + D] += move / 2 * this.options.speedMultiplier;
+          D === 'Y' && this._doTouchMovePullRefresh();
+        } else if (this['scroll' + D] > this['maxWidthScroll' + D]) {
+          this['scroll' + D] = this['maxWidthScroll' + D];
+        } else {
+          this['scroll' + D] = 0;
+        }
+      }
+    }
+  }, {
+    key: '_doTouchMovePullRefresh',
+    value: function _doTouchMovePullRefresh() {
+      if (this.refreshHeight != null) {
+        if (!this.refreshActive && this.scrollY <= -this.refreshHeight) {
+          this.refreshActive = true;
+          if (this.refreshActivateCallBack) {
+            this.refreshActivateCallBack();
+          }
+        } else if (this.refreshActive && this.scrollY > -this.refreshHeight) {
+          this.refreshActive = false;
+          if (this.refreshDeactivateCallBack) {
+            this.refreshDeactivateCallBack();
+          }
+        }
+      }
+    }
+  }, {
+    key: '_doTouchMoveDirection',
+    value: function _doTouchMoveDirection(currentX, currentY) {
+      var X = currentX - this.lastTouchX;
+      var Y = currentY - this.lastTouchY;
+      if (X > 0 && Math.abs(X) > Math.abs(Y)) {
+        this.scrollDirection = 'right';
+      } else if (X < 0 && Math.abs(X) > Math.abs(Y)) {
+        this.scrollDirection = 'left';
+      } else if (Y > 0 && Math.abs(Y) > Math.abs(X)) {
+        this.scrollDirection = 'down';
+      } else if (Y < 0 && Math.abs(Y) > Math.abs(X)) {
+        this.scrollDirection = 'up';
+      }
+    }
+  }, {
+    key: '_doTouchEndHasDeceleration',
+    value: function _doTouchEndHasDeceleration() {
+      var flag = false;
+
+      var endPos = this.positionsArray.length - 1;
+      var startPos = endPos;
+
+      for (var i = endPos; i > 0 && this.positionsArray[i] > this.lastTouchTime - 100; i -= 3) {
+        startPos = i;
+      }
+
+      if (startPos !== endPos) {
+        var timeOffset = this.positionsArray[endPos] - this.positionsArray[startPos];
+        var movedX = this.scrollX - this.positionsArray[startPos - 2];
+        var movedY = this.scrollY - this.positionsArray[startPos - 1];
+
+        this.decelerationVelocityX = movedX / timeOffset * (1000 / 60);
+        this.decelerationVelocityY = movedY / timeOffset * (1000 / 60);
+
+        var minVelocityToStartDeceleration = this.options.paging || this.options.snapping ? 4 : 1;
+
+        var isVelocityX = Math.abs(this.decelerationVelocityX) > minVelocityToStartDeceleration;
+        var isVelocityY = Math.abs(this.decelerationVelocityY) > minVelocityToStartDeceleration;
+        if (isVelocityX || isVelocityY) {
+          flag = true;
+        }
+      }
+      return flag;
+    }
+  }, {
+    key: 'refresh',
+    value: function refresh() {
+      this._setDimensions();
+    }
+  }, {
+    key: 'publish',
+    value: function publish(left, top, animate) {
+      this._publish(left, top, animate);
+    }
+  }, {
+    key: 'scrollTo',
+    value: function scrollTo(left, top, animate) {
+      this._scrollTo(left, top, animate);
+    }
+  }, {
+    key: 'scrollBy',
+    value: function scrollBy(left, top, animate) {
+      this._scrollBy(left, top, animate);
+    }
+  }, {
+    key: 'getAttr',
+    value: function getAttr(key) {
+      var publicAttr = ['scrollDirection', 'enableScrollX', 'enableScrollY', 'minWidthScrollX', 'minHeightScrollY', 'maxWidthScrollX', 'maxHeightScrollY'];
+      if (publicAttr.indexOf(key) !== -1) {
+        return this[key];
+      } else {
+        throw new Error('can not get attr name "key" ');
+      }
+    }
+  }, {
+    key: 'setAttr',
+    value: function setAttr(key, value) {
+      var publicAttr = ['enableScrollX', 'enableScrollY'];
+      if (publicAttr.indexOf(key) !== -1) {
+        this[key] = value;
+      } else {
+        throw new Error('can not set attr name "key" ');
+      }
+    }
+  }, {
+    key: 'stopScroll',
+    value: function stopScroll() {
+      if (this.isDecelerating) {
+        this.animate.stop(this.isDecelerating);
+        this.isDecelerating = false;
+        this.interruptedAnimation = true;
+      }
+
+      if (this.isAnimating) {
+        this.animate.stop(this.isAnimating);
+        this.isAnimating = false;
+        this.interruptedAnimation = true;
+      }
+
+      this.interruptedAnimation = true;
+
+      this.completeDeceleration = false;
+
+      this.positionsArray = [];
     }
   }, {
     key: 'activatePullToRefresh',
@@ -668,56 +716,7 @@ var Scroller = function () {
       if (this.refreshDeactivateCallBack) {
         this.refreshDeactivateCallBack();
       }
-      this.scrollTo(this.scrollX, this.scrollY, true);
-    }
-  }, {
-    key: 'scrollTo',
-    value: function scrollTo(left, top, animate) {
-      if (this.isDecelerating) {
-        this.animate.stop(this.isDecelerating);
-        this.isDecelerating = false;
-      }
-      if (!this.options.scrollingX) {
-        left = this.scrollX;
-      } else {
-        if (this.options.paging) {
-          left = Math.round(left / this.containerWidth) * this.containerWidth;
-        } else if (this.options.snapping) {
-          left = Math.round(left / this.snapWidth) * this.snapWidth;
-        }
-      }
-      if (!this.options.scrollingY) {
-        top = this.scrollY;
-      } else {
-        if (this.options.paging) {
-          top = Math.round(top / this.containerHeight) * this.containerHeight;
-        } else if (this.options.snapping) {
-          top = Math.round(top / this.snapHeight) * this.snapHeight;
-        }
-      }
-
-      if (this.options.snappingType === 'center') {
-        left = Math.max(Math.min(this.maxWisthScrollX, left), 0);
-        top = Math.max(Math.min(this.maxHeightScrollY, top), this.minHeightScrollY);
-      } else if (this.options.snappingType === 'default') {
-        left = Math.max(Math.min(this.maxWisthScrollX, left), 0);
-        top = Math.max(Math.min(this.maxHeightScrollY, top), 0);
-      }
-
-      if (left === this.scrollX && top === this.scrollY) {
-        animate = false;
-      }
-
-      if (!this.isTracking) {
-        this._publish(left, top, animate);
-      }
-    }
-  }, {
-    key: 'scrollBy',
-    value: function scrollBy(left, top, animate) {
-      var startLeft = this.isAnimating ? this.scheduledX : this.scrollX;
-      var startTop = this.isAnimating ? this.scheduledY : this.scrollY;
-      this.scrollTo(startLeft + (left || 0), startTop + (top || 0), animate);
+      this._scrollTo(this.scrollX, this.scrollY, true);
     }
   }, {
     key: 'on',
@@ -747,6 +746,58 @@ var Scroller = function () {
       }
     }
   }, {
+    key: '_scrollTo',
+    value: function _scrollTo(left, top, animate) {
+      if (this.isDecelerating) {
+        this.animate.stop(this.isDecelerating);
+        this.isDecelerating = false;
+      }
+      if (!this.options.scrollingX) {
+        left = this.scrollX;
+      } else {
+        if (this.options.paging) {
+          left = Math.round(left / this.containerWidth) * this.containerWidth;
+        } else if (this.options.snapping) {
+          left = Math.round(left / this.snapWidth) * this.snapWidth;
+        }
+      }
+      if (!this.options.scrollingY) {
+        top = this.scrollY;
+      } else {
+        if (this.options.paging) {
+          top = Math.round(top / this.containerHeight) * this.containerHeight;
+        } else if (this.options.snapping) {
+          top = Math.round(top / this.snapHeight) * this.snapHeight;
+        }
+      }
+
+      if (this.options.snappingType === 'select') {
+        left = Math.max(Math.min(this.maxWidthScrollX, left), this.minWidthScrollX);
+        top = Math.max(Math.min(this.maxHeightScrollY, top), this.minHeightScrollY);
+      } else if (this.options.snappingType === 'default') {
+        left = Math.max(Math.min(this.maxWidthScrollX, left), 0);
+        top = Math.max(Math.min(this.maxHeightScrollY, top), 0);
+      }
+
+      if (left === this.scrollX && top === this.scrollY) {
+        animate = false;
+      }
+
+      if (!this.isTracking) {
+        this._publish(left, top, animate);
+      }
+    }
+  }, {
+    key: '_scrollToElement',
+    value: function _scrollToElement() {}
+  }, {
+    key: '_scrollBy',
+    value: function _scrollBy(left, top, animate) {
+      var startLeft = this.isAnimating ? this.scheduledX : this.scrollX;
+      var startTop = this.isAnimating ? this.scheduledY : this.scrollY;
+      this._scrollTo(startLeft + (left || 0), startTop + (top || 0), animate);
+    }
+  }, {
     key: '_publish',
     value: function _publish(left, top, animate) {
       var _this2 = this;
@@ -755,7 +806,9 @@ var Scroller = function () {
       if (wasAnimating) {
         this.animate.stop(wasAnimating);
         this.isAnimating = false;
+        this.interruptedAnimation = true;
       }
+
       if (animate && this.options.animating) {
         this.scheduledX = left;
         this.scheduledY = top;
@@ -781,16 +834,13 @@ var Scroller = function () {
             _this2.isAnimating = false;
           }
           if (_this2.completeDeceleration || wasFinished) {
-            _this2.options.scrollingComplete();
-
-            if (_this2.options.snappingType === 'center') {
-              var select = _this2.getSelectValue();
-              _this2.options.snappingComplete(select);
-            }
+            _this2._scrollingComplete();
+            _this2._snappingComplete();
           }
         };
 
-        this.isAnimating = this.animate.start(step, verify, completed, this.options.animationDuration, wasAnimating ? this.easeOutCubic : this.easeInOutCubic);
+        var animatType = wasAnimating ? this._easeOutCubic : this._easeInOutCubic;
+        this.isAnimating = this.animate.start(step, verify, completed, this.options.animationDuration, animatType);
       } else {
         this.scheduledX = this.scrollX = left;
         this.scheduledY = this.scrollY = top;
@@ -823,8 +873,21 @@ var Scroller = function () {
       }
     }
   }, {
-    key: 'getSelectValue',
-    value: function getSelectValue() {
+    key: '_scrollingComplete',
+    value: function _scrollingComplete() {
+      this.options.scrollingComplete();
+    }
+  }, {
+    key: '_snappingComplete',
+    value: function _snappingComplete() {
+      if (this.options.snappingType === 'select') {
+        var select = this._getSelectValue();
+        this.options.snappingComplete(select);
+      }
+    }
+  }, {
+    key: '_getSelectValue',
+    value: function _getSelectValue() {
       var minScrollY = Math.abs(this.minHeightScrollY);
       var scrollY = this.scrollY < 0 ? minScrollY - Math.abs(this.scrollY) : minScrollY + Math.abs(this.scrollY);
       var num = scrollY / this.snapHeight;
@@ -839,7 +902,7 @@ var Scroller = function () {
       var _this3 = this;
 
       if (this.options.paging) {
-        var scrollX = Math.max(Math.min(this.scrollX, this.maxWisthScrollX), 0);
+        var scrollX = Math.max(Math.min(this.scrollX, this.maxWidthScrollX), 0);
         var scrollY = Math.max(Math.min(this.scrollY, this.maxHeightScrollY), 0);
 
         this.minDecelerationScrollX = Math.floor(scrollX / this.containerWidth) * this.containerWidth;
@@ -849,7 +912,7 @@ var Scroller = function () {
       } else {
         this.minDecelerationScrollX = 0;
         this.minDecelerationScrollY = 0;
-        this.maxDecelerationScrollX = this.maxWisthScrollX;
+        this.maxDecelerationScrollX = this.maxWidthScrollX;
         this.maxDecelerationScrollY = this.maxHeightScrollY;
       }
 
@@ -857,7 +920,7 @@ var Scroller = function () {
         _this3._stepThroughDeceleration(render);
       };
 
-      var minVelocityToKeepDecelerating = this.options.snapping ? 4 : 0.001;
+      var minVelocityToKeepDecelerating = this.options.snapping ? 3 : 0.02;
 
       var verify = function verify() {
         var shouldContinue = Math.abs(_this3.decelerationVelocityX) >= minVelocityToKeepDecelerating || Math.abs(_this3.decelerationVelocityY) >= minVelocityToKeepDecelerating;
@@ -870,10 +933,10 @@ var Scroller = function () {
       var completed = function completed(renderedFramesPerSecond, animationId, wasFinished) {
         _this3.isDecelerating = false;
         if (_this3.completeDeceleration) {
-          _this3.options.scrollingComplete();
+          _this3._scrollingComplete();
         }
 
-        _this3.scrollTo(_this3.scrollX, _this3.scrollY, _this3.options.snapping);
+        _this3._scrollTo(_this3.scrollX, _this3.scrollY, _this3.options.snapping);
       };
 
       this.isDecelerating = this.animate.start(step, verify, completed);

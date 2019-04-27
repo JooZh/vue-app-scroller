@@ -135,17 +135,22 @@ function getMonths(startYear, currentYear, endYear, startMonth, endMonth) {
   return getItem(eachList)
 }
 // 获取可选日期
-function getDays(currentYear, startMonth, currentMonth, endMonth, startDay, endDay) {
-  let dayCount = getDayCount(currentYear, currentMonth); // 根据年月获取每月天数
+function getDays(begin, current, over) {
+  let dayCount = getDayCount(current[0], current[1]); // 根据年月获取每月天数
   let eachList = [1, dayCount];
-
-  if (startMonth == currentMonth && endMonth == currentMonth) {
-    eachList = [startDay, endDay]
-  } else if (startMonth == currentMonth && endMonth != currentMonth) {
-    eachList = [startDay, dayCount]
-  } else if (startMonth != currentMonth && endMonth == currentMonth) {
-    eachList = [1, endDay]
-  }
+    let isBegin =
+      begin[0] == current[0] &&
+      begin[1] == current[1]
+    let isOver =
+      over[0] == current[0] &&
+      over[1] == current[1] 
+    if (isBegin && isOver) {
+      eachList = [begin[2], over[2]]
+    } else if (isBegin && !isOver) {
+      eachList = [begin[2], dayCount]
+    } else if (!isBegin && isOver) {
+      eachList = [1, over[2]]
+    }
   return getItem(eachList)
 }
 // 获取可选小时
@@ -249,7 +254,7 @@ function getTimeSpace(type, begin, current, over, format, stepMinutes, stepSecon
     case 'yyyy-mm-dd hh:mm:ss':
       timeSpace.push(getYears(begin[0], over[0]))
       timeSpace.push(getMonths(begin[0], current[0], over[0], begin[1], over[1]))
-      timeSpace.push(getDays(current[0], begin[1], current[1], over[1], begin[2], over[2]))
+      timeSpace.push(getDays(begin, current, over))
       timeSpace.push(getHours('date', begin, current, over))
       timeSpace.push(getMinutes('date', begin, current, over, stepMinutes))
       timeSpace.push(getSeconds('date', begin, current, over, stepSeconds))
@@ -257,20 +262,20 @@ function getTimeSpace(type, begin, current, over, format, stepMinutes, stepSecon
     case 'yyyy-mm-dd hh:mm':
       timeSpace.push(getYears(begin[0], over[0]))
       timeSpace.push(getMonths(begin[0], current[0], over[0], begin[1], over[1]))
-      timeSpace.push(getDays(current[0], begin[1], current[1], over[1], begin[2], over[2]))
+      timeSpace.push(getDays(begin, current, over))
       timeSpace.push(getHours('date', begin, current, over))
       timeSpace.push(getMinutes('date', begin, current, over, stepMinutes))
       break;
     case 'yyyy-mm-dd hh':
       timeSpace.push(getYears(begin[0], over[0]))
       timeSpace.push(getMonths(begin[0], current[0], over[0], begin[1], over[1]))
-      timeSpace.push(getDays(current[0], begin[1], current[1], over[1], begin[2], over[2]))
+      timeSpace.push(getDays(begin, current, over))
       timeSpace.push(getHours('date', begin, current, over))
       break;
     case 'yyyy-mm-dd':
       timeSpace.push(getYears(begin[0], over[0]))
       timeSpace.push(getMonths(begin[0], current[0], over[0], begin[1], over[1]))
-      timeSpace.push(getDays(current[0], begin[1], current[1], over[1], begin[2], over[2]))
+      timeSpace.push(getDays(begin, current, over))
       break;
     case 'hh:mm:ss':
       timeSpace.push(getHours('time', begin, current, over))

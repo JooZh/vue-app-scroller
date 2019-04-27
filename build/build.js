@@ -8,7 +8,7 @@ const uglifyES = require('uglify-es')
 const uglifyJS = require('uglify-js')
 
 const banner = `/**
-* vue-app-effect v${version}
+* vue-app-scroller v${version}
 * https://github.com/JooZh/vue-app-scroller
 * Released under the MIT License.
 */
