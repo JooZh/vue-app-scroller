@@ -4,9 +4,9 @@
     <div class="scroller-container">
       <div class="item-content scroll-y-bd border-bottom-1px">
         <div v-show="select>=0" ref="fixed_title" class="title fiexd">{{titles[select]}}</div>
-        <vue-app-scroller 
-          ref="scroller" 
-          :scrollingY="true" 
+        <vue-app-scroller
+          ref="scroller"
+          :scrollingY="true"
           :onScroll="onScroll"
           :data="itemsY">
           <div class="scroller-content">
@@ -87,7 +87,11 @@
       clickNav(index){
         this.select = index
         this.isClick = true
-        this.scrollTo(this.select)
+        this.scroller.stopScroll();
+        setTimeout(()=>{
+          this.scrollTo(this.select)
+        },10)
+
       },
       scrollTo(index){
         // scrollTo 执行时间为 默认 250毫秒

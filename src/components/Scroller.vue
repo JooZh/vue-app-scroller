@@ -26,7 +26,7 @@
 </template>
 
 <script>
-import Scroller from '../core/scroller-v1.0.4.js'
+import Scroller from '../core/scroller-v1.0.5.js'
 import Spinner from './Spinner.vue'
 import Arrow from './Arrow.vue'
 
@@ -121,7 +121,7 @@ export default {
   data(){
     return {
       scroller:null,      // Scroller 实例
-      container:null, 
+      container:null,
       content:null,
       showLoading: true,  // 显示 加载更多
       refreshState: 0,   // 0: pull to refresh, 1: release to refresh, 2: refreshing
@@ -239,7 +239,7 @@ export default {
     },
     // 设置属性
     setAttr(key,value){
-      this.scroller[key] = value 
+      this.scroller[key] = value
     },
     // 滚动到
     scrollTo(x,y,animate){

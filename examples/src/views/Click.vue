@@ -3,10 +3,10 @@
     <nav-bar title="Click"></nav-bar>
     <div class="scroller-container">
       <vue-app-scroller :scrollingY="true" :data="items">
-        <div 
-          v-for="(item, index) in items" 
-          class="row" 
-          @click="clickHandle(index+1)" 
+        <div
+          v-for="(item, index) in items"
+          class="row"
+          @click="clickHandle(index+1)"
           :class="{'grey-bg': index % 2 == 0}"
           :key="index">
           {{ item }}
@@ -31,7 +31,7 @@
     },
     mounted() {
       let items = []
-      for (let i = 1; i < 20; i++) {
+      for (let i = 1; i < 200; i++) {
         items.push(i + ' - keep walking, be 2 with you.')
       }
       this.items = items
@@ -48,5 +48,5 @@
 </script>
 
 <style>
-  
+
 </style>
