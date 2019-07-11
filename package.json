@@ -1,6 +1,6 @@
 {
   "name": "vue-app-scroller",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Improved version of the scroll plug-in, support for drop-down refresh and pull up loading, and can support real-time event monitoring to obtain the location of the scroll",
   "private": false,
   "scripts": {
