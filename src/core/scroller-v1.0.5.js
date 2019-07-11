@@ -168,7 +168,7 @@ class Scroller {
     // {Date}
     m.lastTouchT = null //手指最后移动的时间戳。用于限制减速速度的跟踪范围。
     // {Array} List
-    m.positionsArray = null //位置列表，每个状态使用三个索引=左、上、时间戳
+    m.touchArr = null //位置列表，每个状态使用三个索引=左、上、时间戳
   }
   // 初始化snapping大小
   _setSnapSize(snapping) {
@@ -294,11 +294,11 @@ class Scroller {
         m._doTouchMoveActive(moveY,'Y')
       }
       // 防止列表无限增长(保持最小10，最大20测量点)
-      if (m.positionsArray.length > 60) {
-        m.positionsArray.splice(0, 30);
+      if (m.touchArr.length > 60) {
+        m.touchArr.splice(0, 30);
       }
       // 跟踪滚动的运动
-      m.positionsArray.push(m.scrollX, m.scrollY, timeStamp);
+      m.touchArr.push(m.scrollX, m.scrollY, timeStamp);
       // 同步滚动位置
       m._publish(m.scrollX, m.scrollY);
       // 否则，看看我们现在是否切换到拖拽模式。
@@ -374,7 +374,7 @@ class Scroller {
       }
     }
     // 清空记录列表
-    m.positionsArray.length = 0;
+    m.touchArr.length = 0;
   }
   /*---------------------------------------------------------------------------
     触摸事件的 私有方法
