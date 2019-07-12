@@ -26,7 +26,7 @@
 </template>
 
 <script>
-import Scroller from '../core/scroller-v1.0.5.js'
+import Scroller from '../core/scroller.js'
 import Spinner from './Spinner.vue'
 import Arrow from './Arrow.vue'
 

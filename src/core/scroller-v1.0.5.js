@@ -4,7 +4,7 @@ import Render from './render.js'
 class Scroller {
   constructor(renderDom, options) {
     // 空函数用于初始化操作结束的回调
-    this.NOOP = function () {console.log('s')};
+    this.NOOP = function () {};
     // 自定义事件 用 on 监听，用 emit 发送
     this.handles = {
       scroll:[],    // 发送滚动监听事件
