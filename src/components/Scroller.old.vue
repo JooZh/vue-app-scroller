@@ -26,9 +26,7 @@
 </template>
 
 <script>
-// import Scroller from '../new/new-scroller.js'
 import Scroller from '../core/scroller.js'
-
 import Spinner from './Spinner.vue'
 import Arrow from './Arrow.vue'
 
@@ -172,7 +170,7 @@ export default {
           }
         })
       },{ deep: true});
-      console.log(this.scroller)
+      // console.log(this.scroller)
       // 根据是否绑定监听函数来判断是否调用
       !!this.onScroll && this.onScrollHandler();
       !!this.onPullRefresh && this.onPullRefreshHandler();
@@ -275,8 +273,8 @@ export default {
 /* 下拉刷新 */
 .vue-app-scroller__content .refresh--content {
   width: 100%;
-  height: 100px;
-  margin-top: -100px;
+  height: 44px;
+  margin-top: -44px;
   text-align: center;
   font-size: 14px;
   color: #AAA;

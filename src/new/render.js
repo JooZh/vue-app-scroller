@@ -23,17 +23,18 @@
   let perspectiveProperty = vendorPrefix + "Perspective";
   let transformProperty = vendorPrefix + "Transform";
   if (helperElem.style[perspectiveProperty] !== undef) {
-    return function (left, top) {
-      content.style[transformProperty] = 'translate3d(' + (-left) + 'px,' + (-top) + 'px,0)';
+    return function(left, top, zoom) {
+      content.style[transformProperty] = 'translate3d(' + (-left) + 'px,' + (-top) + 'px,0) scale(' + zoom + ')';
     };
   } else if (helperElem.style[transformProperty] !== undef) {
-    return function (left, top) {
-      content.style[transformProperty] = 'translate(' + (-left) + 'px,' + (-top) + 'px)';
+    return function(left, top, zoom) {
+      content.style[transformProperty] = 'translate(' + (-left) + 'px,' + (-top) + 'px) scale(' + zoom + ')';
     };
   } else {
-    return function (left, top) {
-      content.style.marginLeft = left ? (-left) + 'px' : '';
-      content.style.marginTop = top ? (-top) + 'px' : '';
+    return function(left, top, zoom) {
+      content.style.marginLeft = left ? (-left/zoom) + 'px' : '';
+      content.style.marginTop = top ? (-top/zoom) + 'px' : '';
+      content.style.zoom = zoom || '';
     };
   }
 }
