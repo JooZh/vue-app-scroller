@@ -10,8 +10,8 @@
         </div>
         <div class="datetime-content">
           <div class="flex-box">
-            <vue-app-scroller 
-              snappingType="select"
+            <vue-app-scroller
+              snappingAlign="select"
               :scrollingY="true"
               :snapping="snapping"
               :snappingComplete="snappingComplete"
@@ -104,7 +104,7 @@ export default {
     background-color: rgba(0,0,0,0.5);
     z-index: 999;
     transition: opacity .3s;
-  &-inner 
+  &-inner
     position: fixed;
     bottom: 0;
     left: 0;
@@ -133,15 +133,15 @@ export default {
     &-name
       flex:1;
       font-size:16px;
-      
+
       text-align :center;
       color :#484848
   &-content
-    height 280px; 
+    height 280px;
     display flex;
     position relative
     .flex-box
-      height 280px; 
+      height 280px;
       flex 1
       position relative
       .row
@@ -176,11 +176,11 @@ export default {
       display: flex;
       justify-content: center;
       flex-direction: column;
-      span 
+      span
         display: block;
         width: 100%;
         height: 40px;
-        position: relative;  
+        position: relative;
 
 
 
@@ -197,18 +197,18 @@ export default {
 // }
 .datetime-enter-active .datetime-mask,
 .datetime-leave-active .datetime-mask{
-  opacity: 1; 
+  opacity: 1;
 }
 .datetime-enter .datetime-mask,
 .datetime-leave-active .datetime-mask{
-  opacity: 0; 
+  opacity: 0;
 }
 .datetime-enter-active .datetime-inner,
 .datetime-leave-active .datetime-inner{
-  transform: translateY(0); 
+  transform: translateY(0);
 }
 .datetime-enter .datetime-inner,
 .datetime-leave-active .datetime-inner{
-  transform: translateY(100%); 
+  transform: translateY(100%);
 }
 </style>

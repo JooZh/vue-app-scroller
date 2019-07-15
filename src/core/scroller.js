@@ -1,12 +1,13 @@
 import Animate from './animate.js'
+import PublicApi from './api.js'
 import Render from './render.js'
 class Scroller {
   constructor(dom, options) {
     let m = this
     // 空函数用于初始化操作结束的回调
-    m.NOOP = function () {};
+    m._NOOP = function () {};
     // 自定义事件 用 on 监听，用 emit 发送
-    m.handles = {
+    m._handles = {
       scroll:[],    // 发送滚动监听事件
       loading:[]    // 发送下拉加载事件
     }
@@ -22,13 +23,13 @@ class Scroller {
       mousewheel:false,   // 是否启用鼠标滚轮事件
 			paging: false, //启用分页模式(在全容器内容窗格之间切换)
       snapping: false, // 启用对已配置像素网格的内容进行快照
-      snappingType:'defalut',  // snappingType使用的方式 select 为类似时间选择器
+      snappingAlign:'defalut',  // snappingAlign使用的方式 select 为类似时间选择器
       snappingSelect:0,        // snapping默认选中的值
       snappingListIndex:0,     // snapping多列的时候的当前列
       bouncing: true, // 启用弹跳(内容可以慢慢移到外面，释放后再弹回来)
       speedRatio: 1, // 增加或减少滚动速度
-      scrollingComplete: m.NOOP, // 在触摸端或减速端后端触发的回调，前提是另一个滚动动作尚未开始。用于知道何时淡出滚动条
-      snappingComplete: m.NOOP,  // snapping 滑动完成后的执行事件
+      scrollingComplete: m._NOOP, // 在触摸端或减速端后端触发的回调，前提是另一个滚动动作尚未开始。用于知道何时淡出滚动条
+      snappingComplete: m._NOOP,  // snapping 滑动完成后的执行事件
       peneDece: 0.07, // 这配置了到达边界时应用于减速的更改量
       peneAcce: 0.08 // 这配置了到达边界时施加于加速度的变化量
     };
@@ -37,23 +38,84 @@ class Scroller {
       m.ops[key] = options[key];
     }
     // 初始化内置参数
-    m._initScrollAttr(dom);
+    m._initAttr(dom);
     // 初始化snapping大小
-    m._setSnapSize(m.ops.snapping)
+    m._initSnapSize(m.ops.snapping)
     // 初始化事件监听
-    m._initEvent(m.container);
+    m._initEvent();
+    // 初始化对外api
+    m._initPublicApi()
   }
   /*---------------------------------------------------------------------------
     初始化私有方法
   --------------------------------------------------------------------------- */
+  // 初始化参数
+  _initAttr(dom){
+    let m = this;
+    // 当前的滚动容器信息
+    m._render = Render(dom)         // 渲染函数
+    m._content = dom                // 滚动区域容器节点
+    m._container = dom.parentNode   // 可视区域容器节点
+    m._animate = Animate              // 动画库
+    m.scrollDirection = ''               // 滑动方向
+    // 状态 {Boolean}
+    m._isTracking = false           //触摸事件序列是否正在进行中
+    m.completeDeceleration = false //是否完成减速动画
+    m._isDragging = false           //用户移动的距离是否已达到启用拖动模式的程度。 提示:只有在移动了一些像素后，才可以不被点击等打断。
+    m._isDecelerating = false     //是否正在减速中
+    m._isAnimating = false        //是否动画正在运行中
+    m.enableScrollX = false      //是否开启横向滚动
+    m.enableScrollY = false      //是否开启纵向向滚动
+    m._refreshActive = false      //现在释放事件时是否启用刷新进程
+    m._reachActive = false  //是否已经发送了触底事件
+    m.snappingAlignInit = false   // 是否已经初始化了snapping type = center
+    m._interrupted = true
+    //  {Function}
+    m._refreshStartCb = null        //执行回调以启动实际刷新
+    m._refreshCancelCb = null   //在停用时执行的回调。这是为了通知用户刷新被取消
+    m._refreshActiveCb = null     //回调函数，以在激活时执行。这是为了在用户释放时通知他即将发生刷新
+    // {Number}
+    m.scrollX = 0      //当前在x轴上的滚动位置
+    m.scrollY = 0      //当前在y轴上的滚动位置
+    m.minScrollX = 0   // 最小允许横向滚动宽度
+    m.minScrollY = 0   // 最小允许纵向滚动高度
+    m.maxScrollX = 0   // 最大允许横向滚动宽度
+    m.maxScrollY = 0   // 最大允许纵向滚动高度
+    m._prevScrollX = 0  // 上一个横向滚动位置
+    m._prevScrollY = 0  // 上一个纵向滚动位置
+
+    m._scheduledX = 0     // 预定左侧位置(动画时的最终位置)
+    m._scheduledY = 0     // 预定的顶部位置(动画时的最终位置)
+    m._lastTouchX = 0     // 开始时手指的左侧位置
+    m._lastTouchY = 0     // 开始时手指的顶部位置
+    m._lastTouchT = null  // {Date} 手指最后移动的时间戳。用于限制减速速度的跟踪范围。
+    m._velocityX = 0 //当前因素修改水平滚动的位置与每一步
+    m._velocityY = 0 //当前因素修改垂直滚动位置与每一步
+
+    m._refreshH = 0    // 下拉刷新区域的高度
+    m._loadingH = 0    // 上拉加载区域的高度
+    m._contentW = 0     // 滚动内容宽度
+    m._contentH = 0    // 滚动内容高度
+    m._containerW = 0   // 可视容器宽度
+    m._containerH = 0  // 可视容器高度
+    m._snapW = 50       // 开启网格滑动时网格宽度
+    m._snapH = 50      // 开启网格滑动时网格高度
+
+    m._minDeceX = 0 //最小减速时X滚动位置
+    m._minDeceY = 0 //最小减速时Y滚动位置
+    m._maxDeceX = 0 //最大减速时X滚动位置
+    m._maxDeceY = 0 //最大减速时Y滚动位置
+    //
+    // {Array} List
+    m._touchArr = null //位置列表，每个状态使用三个索引=左、上、时间戳
+  }
   // 初始化事件监听
-  _initEvent(el) {
+  _initEvent() {
     let m =this;
+    let el = m._container;
     // 重置锁定标志
     m.enableScrollX = m.ops.scrollingX;
     m.enableScrollY = m.ops.scrollingY;
-
-    let mousedown = false
     // 触摸开始事件
     el.addEventListener('touchstart', e => {
       if (!e.target.tagName.match(/input|textarea|select/i)) {
@@ -76,25 +138,18 @@ class Scroller {
           pageX: e.pageX,
           pageY: e.pageY
         }], e.timeStamp)
-        mousedown = true
       }
     })
     // 鼠标移动事件
     el.addEventListener('mousemove', e => {
-      if (mousedown) {
-        m.doTouchMove([{
-          pageX: e.pageX,
-          pageY: e.pageY
-        }], e.timeStamp)
-        mousedown = true
-      }
+      m.doTouchMove([{
+        pageX: e.pageX,
+        pageY: e.pageY
+      }], e.timeStamp)
     })
     // 鼠标离开事件
     el.addEventListener('mouseup', e => {
-      if (mousedown) {
-        m.doTouchEnd(e.timeStamp)
-        mousedown = false
-      }
+      m.doTouchEnd(e.timeStamp)
     })
     // 鼠标滚动事件
     if(m.ops.mousewheel){
@@ -110,125 +165,51 @@ class Scroller {
       })
     }
   }
-  // 初始化参数
-  _initScrollAttr(dom){
-    let m = this;
-    // 当前的滚动容器信息
-    m.content = dom                // 滚动区域容器节点
-    m.container = dom.parentNode   // 可视区域容器节点
-    m.render = Render(m.content)      // 渲染函数
-    m.animate = Animate;                 // 动画库
-    m.scrollDirection = ''               // 滑动方向
-    // 状态 {Boolean}
-    m.isTracking = false           //触摸事件序列是否正在进行中
-    m.completeDeceleration = false //是否完成减速动画
-    m.isDragging = false           //用户移动的距离是否已达到启用拖动模式的程度。 提示:只有在移动了一些像素后，才可以不被点击等打断。
-    m.isDecelerating = false     //是否正在减速中
-    m.isAnimating = false        //是否动画正在运行中
-    m.enableScrollX = false      //是否开启横向滚动
-    m.enableScrollY = false      //是否开启纵向向滚动
-    m.refreshActive = false      //现在释放事件时是否启用刷新进程
-    m.reachBottomActive = false  //是否已经发送了触底事件
-    m.snappingTypeInit = false   // 是否已经初始化了snapping type = center
-    m.interruptedAnimation = true;
-    //  {Function}
-    m.refreshStartCb = null        //执行回调以启动实际刷新
-    m.refreshCancelCb = null   //在停用时执行的回调。这是为了通知用户刷新被取消
-    m.refreshActiveCb = null     //回调函数，以在激活时执行。这是为了在用户释放时通知他即将发生刷新
-    // {Number}
-    m.scrollX = 0      //当前在x轴上的滚动位置
-    m.scrollY = 0      //当前在y轴上的滚动位置
-    m.minScrollX = 0   // 最小允许横向滚动宽度
-    m.minScrollY = 0   // 最小允许纵向滚动高度
-    m.maxScrollX = 0   // 最大允许横向滚动宽度
-    m.maxScrollY = 0   // 最大允许纵向滚动高度
-    m.prevScrollX = 0  // 上一个横向滚动位置
-    m.prevScrollY = 0  // 上一个纵向滚动位置
-
-    m.scheduledX = 0   //预定左侧位置(动画时的最终位置)
-    m.scheduledY = 0 // 预定的顶部位置(动画时的最终位置)
-    m.lastTouchX = 0 //开始时手指的左侧位置
-    m.lastTouchY = 0 //开始时手指的顶部位置
-    m.velocityX = 0 //当前因素修改水平滚动的位置与每一步
-    m.velocityY = 0 //当前因素修改垂直滚动位置与每一步
-
-    m.refreshH = 0    // 下拉刷新区域的高度
-    m.loadingH = 0    // 上拉加载区域的高度
-    m.contentW = 0     // 滚动内容宽度
-    m.contentH = 0    // 滚动内容高度
-    m.containerW = 0   // 可视容器宽度
-    m.containerH = 0  // 可视容器高度
-    m.snapWidth = 50       // 开启网格滑动时网格宽度
-    m.snapHeight = 50      // 开启网格滑动时网格高度
-
-    m.minDeceX = 0 //最小减速时X滚动位置
-    m.minDeceY = 0 //最小减速时Y滚动位置
-    m.maxDeceX = 0 //最大减速时X滚动位置
-    m.maxDeceY = 0 //最大减速时Y滚动位置
-    // {Date}
-    m.lastTouchTime = null //手指最后移动的时间戳。用于限制减速速度的跟踪范围。
-    // {Array} List
-    m.touchArr = null //位置列表，每个状态使用三个索引=左、上、时间戳
-  }
   // 初始化snapping大小
-  _setSnapSize(snapping) {
+  _initSnapSize(snapping) {
     let m = this
     if(typeof snapping === 'number'){
-      m.snapWidth = snapping;
-      m.snapHeight = snapping;
+      m._snapW = snapping;
+      m._snapH = snapping;
     }else if(Array.isArray(snapping)){
-      m.snapWidth = snapping[0];
-      m.snapHeight = snapping[1];
+      m._snapW = snapping[0];
+      m._snapH = snapping[1];
     }
   }
   // 设置滚动可视区域
   _setDimensions() {
     let m = this;
-    let containerWidth = m.container.offsetWidth
-    let containerHeight = m.container.offsetHeight
-    let contentWidth = m.content.offsetWidth
-    let contentHeight = m.content.offsetHeight
-    // 只更新已定义的值
-    if (containerWidth === +containerWidth) {
-      m.containerW = containerWidth;
-    }
-    if (containerHeight === +containerHeight) {
-      m.containerH = containerHeight;
-    }
-    if (contentWidth === +contentWidth) {
-      m.contentW = contentWidth;
-    }
-    if (contentHeight === +contentHeight) {
-      m.contentH = contentHeight;
-    }
+    // 获取容器尺寸
+    m._containerW = m._container.offsetWidth
+    m._containerH = m._container.offsetHeight
+    m._contentW = m._content.offsetWidth
+    m._contentH = m._content.offsetHeight
     // 保留上一次的最大可滚动值
     let prevMaxScroll = m.maxScrollY;
     // 获取子节点
-    let childrens = m.content.children;
+    let childrens = m._content.children;
     // 保存下拉刷新和上拉加载的高度
-    m.refreshH = m.ops.isPullRefresh ? childrens[0].offsetHeight : 0;
-    m.loadingH = m.ops.isReachBottom ? childrens[childrens.length-1].offsetHeight : 0;
-
+    m._refreshH = m.ops.isPullRefresh ? childrens[0].offsetHeight : 0;
+    m._loadingH = m.ops.isReachBottom ? childrens[childrens.length-1].offsetHeight : 0;
     // 更新可滚动区域的尺寸。
     // 是否开启居中类型snap的限制滑动区域
-    if(m.ops.snappingType === 'select'){
-      let itemCount = Math.round(m.containerH / m.snapHeight)
-      m.minScrollY = -m.snapHeight * Math.floor(itemCount / 2)
-      m.maxScrollY = m.minScrollY + (childrens[1].children.length-1) * m.snapHeight
+    if(m.ops.snappingAlign === 'select'){
+      let itemCount = Math.round(m._containerH / m._snapH)
+      m.minScrollY = -m._snapH * Math.floor(itemCount / 2)
+      m.maxScrollY = m.minScrollY + (childrens[1].children.length-1) * m._snapH
       // 防止多次
-      if(!m.snappingTypeInit){
-        let top = m.minScrollY + (m.ops.snappingSelect * m.snapHeight)
-        m.scrollY = top
-        m.snappingTypeInit = true;
+      if(!m.snappingAlignInit){
+        m.scrollY = m.minScrollY + (m.ops.snappingSelect * m._snapH)
+        m.snappingAlignInit = true;
       }
     }else{
-      m.maxScrollX = Math.max(m.contentW - m.containerW, 0);
-      m.maxScrollY = Math.max(m.contentH - m.containerH, 0) - m.refreshH;
+      m.maxScrollX = Math.max(m._contentW - m._containerW, 0);
+      m.maxScrollY = Math.max(m._contentH - m._containerH, 0) - m._refreshH;
     }
     // 判断是否需要发送下拉触底事件
     if(m.ops.isReachBottom){
       if(prevMaxScroll !== m.maxScrollY){
-        m.reachBottomActive = false;
+        m._reachActive = false;
       }else{
         if(m.maxScrollY != 0){
           m.emit('loading',{
@@ -239,6 +220,14 @@ class Scroller {
     }
     // 更新滚动位置
     m._scrollTo(m.scrollX, m.scrollY, true);
+  }
+  // 初始化公共api函数
+  _initPublicApi(){
+    let m = this;
+    let apis = PublicApi(m)
+    for(let api in apis){
+      m[api] = apis[api]
+    }
   }
   /*---------------------------------------------------------------------------
     动画效果
@@ -261,21 +250,22 @@ class Scroller {
     m._isTouches(touches);
     m._isTouchesTime(timeStamp)
     // 重置跟踪标记
-    m.isTracking = true;
+    m._isTracking = true;
     // 停止动画
     m.stopScroll()
     // 存储初始触摸位置
-    m.lastTouchX = touches[0].pageX;
-    m.lastTouchY = touches[0].pageY;
+    m._lastTouchX = touches[0].pageX;
+    m._lastTouchY = touches[0].pageY;
     // 存储初始移动时间戳
-    m.lastTouchTime = timeStamp;
+    m._lastTouchT = timeStamp;
   }
   // 触摸滑动的时候，
   doTouchMove(touches, timeStamp) {
     let m = this;
     m._isTouches(touches);
     m._isTouchesTime(timeStamp)
-    if (!m.isTracking) {
+    // 跟踪判断
+    if (!m._isTracking) {
       return;
     }
     // 得到当前滑动的位置
@@ -284,10 +274,10 @@ class Scroller {
     // 判断滑动方向需要在move的时候就判断
     m._doTouchMoveDirection(currentTouchX,currentTouchY)
     // 是否已经进入了拖拽模式
-    if (m.isDragging) {
+    if (m._isDragging) {
       // 计算移动的距离
-      let moveX = currentTouchX - m.lastTouchX;
-      let moveY = currentTouchY - m.lastTouchY;
+      let moveX = currentTouchX - m._lastTouchX;
+      let moveY = currentTouchY - m._lastTouchY;
       // 是否开启了横向滚动
       if (m.enableScrollX) {
         m._doTouchMoveActive(moveX,'X')
@@ -297,88 +287,89 @@ class Scroller {
         m._doTouchMoveActive(moveY,'Y')
       }
       // 防止列表无限增长(保持最小10，最大20测量点)
-      if (m.touchArr.length > 60) {
-        m.touchArr.splice(0, 30);
+      if (m._touchArr.length > 60) {
+        m._touchArr.splice(0, 30);
       }
       // 跟踪滚动的运动
-      m.touchArr.push(m.scrollX, m.scrollY, timeStamp);
+      m._touchArr.push(m.scrollX, m.scrollY, timeStamp);
       // 同步滚动位置
       m._publish(m.scrollX, m.scrollY);
       // 否则，看看我们现在是否切换到拖拽模式。
     } else {
-      let minMoveDistance = 3;    // 最小拖拽距离
-      let distanceX = Math.abs(currentTouchX - m.lastTouchX);  // 横向滑动距离绝对值
-      let distanceY = Math.abs(currentTouchY - m.lastTouchY);  // 纵向滑动距离绝对值
+      // 给定进入拖拽的最小距离
+      let minMoveDistance = 3;
+      let distanceX = Math.abs(currentTouchX - m._lastTouchX);  // 横向滑动距离绝对值
+      let distanceY = Math.abs(currentTouchY - m._lastTouchY);  // 纵向滑动距离绝对值
       //有一定的触摸滑动距离后开启拖拽模式
-      m.isDragging = distanceX >= minMoveDistance || distanceY >= minMoveDistance;
+      m._isDragging = distanceX >= minMoveDistance || distanceY >= minMoveDistance;
       // 如果进入拖拽模式解除动画中断标志
-      if (m.isDragging) {
-        m.interruptedAnimation = false;
+      if (m._isDragging) {
+        m._interrupted = false;
       }
     }
     // 为下一个事件更新上次触摸的位置和时间戳
-    m.lastTouchX = currentTouchX;
-    m.lastTouchY = currentTouchY;
-    m.lastTouchTime = timeStamp;
+    m._lastTouchX = currentTouchX;
+    m._lastTouchY = currentTouchY;
+    m._lastTouchT = timeStamp;
   }
   // 触摸事件结束
   doTouchEnd(timeStamp) {
     let m = this;
     m._isTouchesTime(timeStamp)
-    if (!m.isTracking) {
+    if (!m._isTracking) {
       return;
     }
     // 不再触摸(当两根手指触碰屏幕时，有两个触摸结束事件)
-    m.isTracking = false;
+    m._isTracking = false;
     // 现在一定要重置拖拽标志。这里我们也检测是否手指移动得足够快，可以切换到减速动画。
-    if (m.isDragging) {
+    if (m._isDragging) {
       // 重置拖拽标志
-      m.isDragging = false;
+      m._isDragging = false;
       // 开始减速 验证最后一次检测到的移动是否在某个相关的时间范围内
-      if (m.ops.animating && (timeStamp - m.lastTouchTime) <= 100) {
+      if (m.ops.animating && (timeStamp - m._lastTouchT) <= 100) {
         let isDeceleration = m._doTouchCanDeceleration()
-        if(isDeceleration){
-          if (!m.refreshActive) {
+        if (isDeceleration) {
+          if (!m._refreshActive) {
             m._startDeceleration(timeStamp);
           }
         }else{
           m._scrollingComplete()
         }
-      } else if ((timeStamp - m.lastTouchTime) > 100) {
+      } else if ((timeStamp - m._lastTouchT) > 100) {
         m._scrollingComplete()
       }
     }
     // 如果这是一个较慢的移动，它是默认不减速，但这个仍然意味着我们想要回到这里的边界。为了提高边缘盒的稳定性，将其置于上述条件之外
     // 例如，touchend在没有启用拖放的情况下被触发。这通常不应该修改了滚动条的位置，甚至显示了滚动条。
-    if (!m.isDecelerating) {
-      if (m.refreshActive && m.refreshStartCb) {
+    if (!m._isDecelerating) {
+      if (m._refreshActive && m._refreshStartCb) {
         // 使用publish而不是scrollTo来允许滚动到超出边界位置
         // 我们不需要在这里对scrollLeft、zoomLevel等进行规范化，因为我们只在启用了滚动刷新时进行y滚动
-        m._publish(m.scrollX, -m.refreshH, true);
-        if (m.refreshStartCb) {
-          m.refreshStartCb();
+        m._publish(m.scrollX, -m._refreshH, true);
+        if (m._refreshStartCb) {
+          m._refreshStartCb();
         }
       } else {
-        if (m.interruptedAnimation || m.isDragging) {
+        if (m._interrupted || m._isDragging) {
           m._scrollingComplete()
         }
-        if((timeStamp - m.lastTouchTime) > 100){
+        if((timeStamp - m._lastTouchT) > 100){
           m._scrollTo(m.scrollX, m.scrollY, true);
           m._getScrollToValues();
         }else{
           m._startDeceleration();
         }
-        // 直接对失活进行签名(在刷新时不做任何操作?)
-        if (m.refreshActive) {
-          m.refreshActive = false;
-          if (m.refreshCancelCb) {
-            m.refreshCancelCb();
+        // 在刷新时不做任何操作
+        if (m._refreshActive) {
+          m._refreshActive = false;
+          if (m._refreshCancelCb) {
+            m._refreshCancelCb();
           }
         }
       }
     }
     // 清空记录列表
-    m.touchArr.length = 0;
+    m._touchArr.length = 0;
   }
   /*---------------------------------------------------------------------------
     触摸事件的 私有方法
@@ -408,7 +399,7 @@ class Scroller {
     if (m[scroll] > m[maxScroll] || m[scroll] < 0) {
       // 在边缘放慢速度
       if (m.ops.bouncing) {
-        if(m.ops.snappingType === 'select'){
+        if(m.ops.snappingAlign === 'select'){
           m[scroll] += (move / 10 * m.ops.speedRatio);
         }else{
           m[scroll] += (move / 2 * m.ops.speedRatio);
@@ -424,16 +415,16 @@ class Scroller {
   // 支持下拉刷新(仅当只有y可滚动时)
   _doTouchMovePullRefresh(){
     let m = this
-    if (!m.enableScrollX && m.refreshH != null) {
-      if (!m.refreshActive && m.scrollY <= -m.refreshH) {
-        m.refreshActive = true;
-        if (m.refreshActiveCb) {
-          m.refreshActiveCb();
+    if (!m.enableScrollX && m._refreshH != null) {
+      if (!m._refreshActive && m.scrollY <= -m._refreshH) {
+        m._refreshActive = true;
+        if (m._refreshActiveCb) {
+          m._refreshActiveCb();
         }
-      } else if (m.refreshActive && m.scrollY > -m.refreshH) {
-        m.refreshActive = false;
-        if (m.refreshCancelCb) {
-          m.refreshCancelCb();
+      } else if (m._refreshActive && m.scrollY > -m._refreshH) {
+        m._refreshActive = false;
+        if (m._refreshCancelCb) {
+          m._refreshCancelCb();
         }
       }
     }
@@ -441,8 +432,8 @@ class Scroller {
   // 判断滑动方向
   _doTouchMoveDirection(currentX,currentY){
     let m = this
-    let X = currentX - m.lastTouchX;
-    let Y = currentY - m.lastTouchY;
+    let X = currentX - m._lastTouchX;
+    let Y = currentY - m._lastTouchY;
     if ( X > 0 && Math.abs(X) > Math.abs(Y)) {
       m.scrollDirection = 'right'
     }else if ( X < 0 && Math.abs(X) > Math.abs(Y)) {
@@ -457,27 +448,27 @@ class Scroller {
   _doTouchCanDeceleration(){
     let m = this
     let flag = false
-    // 然后计算出100毫秒前滚动条的位置
-    let endPos = m.touchArr.length - 1;
+    // 然后计算出100毫秒前滚动的位置
+    let endPos = m._touchArr.length - 1;
     let startPos = endPos;
     // 将指针移动到100ms前测量的位置
-    for (let i = endPos; i > 0 && m.touchArr[i] > (m.lastTouchTime - 100); i -= 3) {
+    for (let i = endPos; i > 0 && m._touchArr[i] > (m._lastTouchT - 100); i -= 3) {
       startPos = i;
     }
     // 如果开始和停止位置在100ms时间内相同，我们无法计算任何有用的减速。
     if (startPos !== endPos) {
       // 计算这两点之间的相对运动
-      let timeOffset = m.touchArr[endPos] - m.touchArr[startPos];
-      let movedX = m.scrollX - m.touchArr[startPos - 2];
-      let movedY = m.scrollY - m.touchArr[startPos - 1];
+      let timeOffset = m._touchArr[endPos] - m._touchArr[startPos];
+      let movedX = m.scrollX - m._touchArr[startPos - 2];
+      let movedY = m.scrollY - m._touchArr[startPos - 1];
       // 基于50ms计算每个渲染步骤的移动
-      m.velocityX = movedX / timeOffset * (1000 / 60);
-      m.velocityY = movedY / timeOffset * (1000 / 60);
+      m._velocityX = movedX / timeOffset * (1000 / 60);
+      m._velocityY = movedY / timeOffset * (1000 / 60);
       // 开始减速需要多少速度
       let minVelocityToStartDeceleration = m.ops.paging || m.ops.snapping ? 4 : 1;;
       // 验证我们有足够的速度开始减速
-      let isVelocityX = Math.abs(m.velocityX) > minVelocityToStartDeceleration
-      let isVelocityY = Math.abs(m.velocityY) > minVelocityToStartDeceleration
+      let isVelocityX = Math.abs(m._velocityX) > minVelocityToStartDeceleration
+      let isVelocityY = Math.abs(m._velocityY) > minVelocityToStartDeceleration
       if (isVelocityX || isVelocityY) {
         flag = true
       }
@@ -487,83 +478,41 @@ class Scroller {
   /* ---------------------------------------------------------------------------
     PUBLIC API
   --------------------------------------------------------------------------- */
-  // 刷新滚动区域，通常是由于 dom 加载和渲染未完成时候的操作
-  refresh(){
-    this._setDimensions()
-  }
-  // 更新位置
-  publish(left, top, animate){
-    this._publish(left, top, animate)
-  }
-  // 更新位置
-  scrollTo(left, top, animate){
-    this._scrollTo(left, top, animate)
-  }
-  // 更新位置
-  scrollBy(left, top, animate){
-    this._scrollBy(left, top, animate)
-  }
-  // 获取公开属性
-  getAttr(key){
-    let publicAttr = [
-      'scrollDirection',
-      'enableScrollX',
-      'enableScrollY',
-      'minScrollX',
-      'minScrollY',
-      'maxScrollX' ,
-      'maxScrollY'
-    ]
-    if(publicAttr.indexOf(key)!==-1){
-      return this[key]
-    }else{
-      throw new Error('can not get attr name "key" ')
-    }
-  }
-  // 设置公开属性
-  setAttr(key,value){
-    let publicAttr = [ 'enableScrollX', 'enableScrollY']
-    if(publicAttr.indexOf(key)!== -1){
-      this[key] = value
-    }else{
-      throw new Error('can not set attr name "key" ')
-    }
-  }
   // 停止滚动，停止动画
-  stopScroll(){
+  _stopScroll(){
     let m = this
     // 重置中断动画标志
-    m.interruptedAnimation = true;
+    m._interrupted = true;
     // 当减速停止时候停止动画
-    if (m.isDecelerating) {
-      m.animate.stop(m.isDecelerating);
-      m.isDecelerating = false;
-      m.interruptedAnimation = true;
+    if (m._isDecelerating) {
+      m._animate.stop(m._isDecelerating);
+      m._isDecelerating = false;
+      m._interrupted = true;
     }
     // 当动画正在运行时候停止动画
-    if (m.isAnimating) {
-      m.animate.stop(m.isAnimating);
-      m.isAnimating = false;
-      m.interruptedAnimation = true;
+    if (m._isAnimating) {
+      m._animate.stop(m._isAnimating);
+      m._isAnimating = false;
+      m._interrupted = true;
     }
     // 复位减速完成标志
     m.completeDeceleration = false;
     // 清除数据结构
-    m.touchArr = [];
+    m._touchArr = [];
   }
   // 激活pull-to-refresh。列表顶部的一个特殊区域，用于在用户事件在此区域可见期间被释放时启动列表刷新。
   activatePullToRefresh(activateCb, deactivateCb, startCb) {
     let m = this
-    m.refreshStartCb = startCb;       // 下拉刷新开始
-    m.refreshActiveCb = activateCb;   // 下拉刷新激活
-    m.refreshCancelCb = deactivateCb; // 下拉刷新取消
+    m._refreshStartCb = startCb;       // 下拉刷新开始
+    m._refreshActiveCb = activateCb;   // 下拉刷新激活
+    m._refreshCancelCb = deactivateCb; // 下拉刷新取消
   }
   // 标志下拉刷新完成。
   finishPullToRefresh() {
     let m = this
-    m.refreshActive = false;
-    if (m.refreshCancelCb) {
-      m.refreshCancelCb();
+    m._refreshActive = false;
+    if (m._refreshCancelCb) {
+      m._refreshCancelCb();
     }
     m._scrollTo(m.scrollX, m.scrollY, true);
   }
@@ -573,11 +522,11 @@ class Scroller {
   //订阅事件 注册给定类型的事件处理程序， type -> 自定义事件类型， handler -> 自定义事件回调函数
   on(eventType, handle) {
     let m = this
-    if (!m.handles.hasOwnProperty(eventType)) {
-      m.handles[eventType] = [];
+    if (!m._handles.hasOwnProperty(eventType)) {
+      m._handles[eventType] = [];
     }
     if (typeof handle == 'function') {
-      m.handles[eventType].push(handle);
+      m._handles[eventType].push(handle);
     } else {
       throw new Error('Missing callback function');
     }
@@ -585,8 +534,8 @@ class Scroller {
   // 发送 事件 以及附带参数和
   emit(eventType, ...args) {
     let m = this
-    if (m.handles.hasOwnProperty(eventType)) {
-      m.handles[eventType].forEach((item, key, arr) => {
+    if (m._handles.hasOwnProperty(eventType)) {
+      m._handles[eventType].forEach((item, key, arr) => {
         item.apply(null, args);
       })
     } else {
@@ -600,30 +549,30 @@ class Scroller {
   _scrollTo(left, top, animate) {
     let m = this;
     // 停止减速
-    if (m.isDecelerating) {
-      m.animate.stop(m.isDecelerating);
-      m.isDecelerating = false;
+    if (m._isDecelerating) {
+      m._animate.stop(m._isDecelerating);
+      m._isDecelerating = false;
     }
     if (!m.ops.scrollingX) {
       left = m.scrollX;
     }else {
       if (m.ops.paging) {
-        left = Math.round(left / m.containerW) * m.containerW;
+        left = Math.round(left / m._containerW) * m._containerW;
       } else if (m.ops.snapping) {
-        left = Math.round(left / m.snapWidth) * m.snapWidth;
+        left = Math.round(left / m._snapW) * m._snapW;
       }
     }
     if (!m.ops.scrollingY) {
       top = m.scrollY;
     }else {
       if (m.ops.paging) {
-        top = Math.round(top / m.containerH) * m.containerH;
+        top = Math.round(top / m._containerH) * m._containerH;
       } else if (m.ops.snapping) {
-        top = Math.round(top / m.snapHeight) * m.snapHeight;
+        top = Math.round(top / m._snapH) * m._snapH;
       }
     }
     // 容许范围极限 增加最小高度判断
-    if(m.ops.snappingType === 'select'){
+    if(m.ops.snappingAlign === 'select'){
       left = Math.max(Math.min(m.maxScrollX, left), m.minScrollX);
       top = Math.max(Math.min(m.maxScrollY, top), m.minScrollY);
     } else {
@@ -635,19 +584,19 @@ class Scroller {
       animate = false;
     }
     // 发布新值
-    if (!m.isTracking) {
+    if (!m._isTracking) {
       m._publish(left, top, animate);
     }
   }
   // 滚动到指定节点。尊重边界，自动截断。
-  _scrollToElement(){
+  _scrollToElement(left, top, animate){
 
   }
   // 按给定的偏移量滚动
   _scrollBy(left, top, animate) {
     let m = this
-    let startX = m.isAnimating ? m.scheduledX : m.scrollX;
-    let startY = m.isAnimating ? m.scheduledY : m.scrollY;
+    let startX = m._isAnimating ? m._scheduledX : m.scrollX;
+    let startY = m._isAnimating ? m._scheduledY : m.scrollY;
     m._scrollTo(startX + (left || 0), startY + (top || 0), animate);
   }
   // 将滚动位置应用于内容元素
@@ -655,17 +604,17 @@ class Scroller {
     let m = this;
     // 记住我们是否有动画，然后我们尝试基于动画的当前“驱动器”继续
     // 当前主要服务于 snapping
-    let wasAnimating = m.isAnimating;
+    let wasAnimating = m._isAnimating;
     if (wasAnimating) {
-      m.animate.stop(wasAnimating);
-      m.isAnimating = false;
-      m.interruptedAnimation = true
+      m._animate.stop(wasAnimating);
+      m._isAnimating = false;
+      m._interrupted = true
     }
 
     if (animate && m.ops.animating) {
       // 为scrollBy/zoomBy功能保留预定位置
-      m.scheduledX = left;
-      m.scheduledY = top;
+      m._scheduledX = left;
+      m._scheduledY = top;
       let oldLeft = m.scrollX;
       let oldTop = m.scrollY;
       let diffLeft = left - oldLeft;
@@ -675,17 +624,17 @@ class Scroller {
           m.scrollX = oldLeft + (diffLeft * percent);
           m.scrollY = oldTop + (diffTop * percent);
           // 将值返回
-          if (m.render) {
-            m.render(m.scrollX, m.scrollY);
+          if (m._render) {
+            m._render(m.scrollX, m.scrollY);
           }
         }
       };
       let verify = (id) => {
-        return m.isAnimating === id;
+        return m._isAnimating === id;
       };
       let completed = (renderedFramesPerSecond, animationId, wasFinished) => {
-        if (animationId === m.isAnimating) {
-          m.isAnimating = false;
+        if (animationId === m._isAnimating) {
+          m._isAnimating = false;
         }
         if (m.completeDeceleration || wasFinished) {
           m._scrollingComplete()
@@ -694,31 +643,31 @@ class Scroller {
       };
       // 当继续基于之前的动画时，我们选择一个ease-out动画而不是ease-in-out
       let animatType = wasAnimating ? m._easeOutCubic : m._easeInOutCubic
-      m.isAnimating = m.animate.start(step, verify, completed, m.ops.animationDuration,animatType );
+      m._isAnimating = m._animate.start(step, verify, completed, m.ops.animationDuration,animatType);
     } else {
-      m.scheduledX = m.scrollX = left;
-      m.scheduledY = m.scrollY = top;
+      m._scheduledX = m.scrollX = left;
+      m._scheduledY = m.scrollY = top;
       //将值返回
-      if (m.render) {
-        m.render(left, top);
+      if (m._render) {
+        m._render(left, top);
       }
     }
     // 是否需要监听触底事件
-    if(m.ops.isReachBottom && !m.reachBottomActive){
+    if(m.ops.isReachBottom && !m._reachActive){
       let scrollYn = Number(m.scrollY.toFixed());
-      let absMaxScrollYn =  m.maxScrollY - m.loadingH;
+      let absMaxScrollYn =  m.maxScrollY - m._loadingH;
       if(scrollYn > absMaxScrollYn && absMaxScrollYn > 0){
         m.emit('loading',{
           hasMore: true
         })
-        m.reachBottomActive = true
+        m._reachActive = true
       }
     }
     // 是否需要监听滚动事件
     if(m.ops.listenScroll){
       // 节流 只判断整数变化
-      let isChangeX = m.prevScrollX.toFixed() !== m.scrollX.toFixed()
-      let isChangeY = m.prevScrollY.toFixed() !== m.scrollY.toFixed()
+      let isChangeX = m._prevScrollX.toFixed() !== m.scrollX.toFixed()
+      let isChangeY = m._prevScrollY.toFixed() !== m.scrollY.toFixed()
       if(isChangeX || isChangeY){
         m.emit('scroll', {
           x: Math.floor(m.scrollX),
@@ -735,7 +684,7 @@ class Scroller {
   // 选择器完成事件，只在指定的情况下触法
   _snappingComplete(){
     let m = this
-    if(m.ops.snappingType === 'select'){
+    if(m.ops.snappingAlign === 'select'){
       let select = m._getSnapValue()
       m.ops.snappingComplete(select);
     }
@@ -745,7 +694,7 @@ class Scroller {
     let m = this
     let minScrollY = Math.abs(m.minScrollY);
     let scrollY = m.scrollY<0 ? minScrollY - Math.abs(m.scrollY) : minScrollY + Math.abs(m.scrollY);
-    let num = scrollY / m.snapHeight
+    let num = scrollY / m._snapH
     return {
       listIndex: m.ops.snappingListIndex,
       selectIndex: Math.floor(num)
@@ -756,8 +705,8 @@ class Scroller {
     var m = this;
     var interTimer = setInterval(()=>{
       // 节流 只判断整数变化
-      let isChangeX = m.prevScrollX.toFixed() !== m.scrollX.toFixed()
-      let isChangeY = m.prevScrollY.toFixed() !== m.scrollY.toFixed()
+      let isChangeX = m._prevScrollX.toFixed() !== m.scrollX.toFixed()
+      let isChangeY = m._prevScrollY.toFixed() !== m.scrollY.toFixed()
       if (isChangeX || isChangeY){
         m.emit('scroll', {
           x: Math.floor(m.scrollX),
@@ -792,15 +741,15 @@ class Scroller {
       let scrollX = Math.max(Math.min(m.scrollX, m.maxScrollX), 0);
       let scrollY = Math.max(Math.min(m.scrollY, m.maxScrollY), 0);
       // 我们不是将减速限制在允许范围的最小/最大值，而是将减速限制在可见客户机区域的大小。每个页面都应该有准确的客户区域大小。
-      m.minDeceX = Math.floor(scrollX / m.containerW) * m.containerW;
-      m.minDeceY = Math.floor(scrollY / m.containerH) * m.containerH;
-      m.maxDeceX = Math.ceil(scrollX / m.containerW) * m.containerW;
-      m.maxDeceY = Math.ceil(scrollY / m.containerH) * m.containerH;
+      m._minDeceX = Math.floor(scrollX / m._containerW) * m._containerW;
+      m._minDeceY = Math.floor(scrollY / m._containerH) * m._containerH;
+      m._maxDeceX = Math.ceil(scrollX / m._containerW) * m._containerW;
+      m._maxDeceY = Math.ceil(scrollY / m._containerH) * m._containerH;
     } else {
-      m.minDeceX = 0;
-      m.minDeceY = 0;
-      m.maxDeceX = m.maxScrollX;
-      m.maxDeceY = m.maxScrollY;
+      m._minDeceX = 0;
+      m._minDeceY = 0;
+      m._maxDeceX = m.maxScrollX;
+      m._maxDeceY = m.maxScrollY;
     }
     // 包装类方法
     let step = (percent, now, render) => {
@@ -811,8 +760,8 @@ class Scroller {
     // 检测是否仍然值得继续动画步骤 如果我们已经慢到无法再被用户感知，我们就会在这里停止整个过程。
     let verify = () => {
       let shouldContinue =
-        Math.abs(m.velocityX) >= minVelocityToKeepDecelerating ||
-        Math.abs(m.velocityY) >= minVelocityToKeepDecelerating;
+        Math.abs(m._velocityX) >= minVelocityToKeepDecelerating ||
+        Math.abs(m._velocityY) >= minVelocityToKeepDecelerating;
       if (!shouldContinue) {
         m.completeDeceleration = true;
       }
@@ -820,7 +769,7 @@ class Scroller {
     };
     //
     let completed = (renderedFramesPerSecond, animationId, wasFinished) => {
-      m.isDecelerating = false;
+      m._isDecelerating = false;
       if (m.completeDeceleration) {
         m._scrollingComplete()
       }
@@ -828,30 +777,30 @@ class Scroller {
       m._scrollTo(m.scrollX, m.scrollY, m.ops.snapping);
     };
     // 启动动画并打开标志
-    m.isDecelerating = m.animate.start(step, verify, completed);
+    m._isDecelerating = m._animate.start(step, verify, completed);
   }
   // 调用动画的每一步
   _stepThroughDeceleration(render) {
     let m = this;
     // 计算下一个滚动位置 增加减速到滚动位置
-    let scrollX = m.scrollX + m.velocityX;
-    let scrollY = m.scrollY + m.velocityY;
+    let scrollX = m.scrollX + m._velocityX;
+    let scrollY = m.scrollY + m._velocityY;
     // 硬性限制滚动位置为非弹跳模式
     if (!m.ops.bouncing) {
-      let scrollLeftFixed = Math.max(Math.min(m.maxDeceX, scrollX), m.minDeceX);
+      let scrollLeftFixed = Math.max(Math.min(m._maxDeceX, scrollX), m._minDeceX);
       if (scrollLeftFixed !== scrollX) {
         scrollX = scrollLeftFixed;
-        m.velocityX = 0;
+        m._velocityX = 0;
       }
-      let scrollTopFixed = Math.max(Math.min(m.maxDeceY, scrollY), m.minDeceY);
+      let scrollTopFixed = Math.max(Math.min(m._maxDeceY, scrollY), m._minDeceY);
       if (scrollTopFixed !== scrollY) {
         scrollY = scrollTopFixed;
-        m.velocityY = 0;
+        m._velocityY = 0;
       }
     }
     //记录上一个滚动位置
-    m.prevScrollX = m.scrollX;
-    m.prevScrollY = m.scrollY;
+    m._prevScrollX = m.scrollX;
+    m._prevScrollY = m.scrollY;
     // 更新滚动位置
     if (render) {
       m._publish(scrollX, scrollY);
@@ -862,8 +811,8 @@ class Scroller {
     // 在每次迭代中减慢速度 模拟自然行为
     if (!m.ops.paging) {
       let frictionFactor = 0.95;
-      m.velocityX *= frictionFactor;
-      m.velocityY *= frictionFactor;
+      m._velocityX *= frictionFactor;
+      m._velocityY *= frictionFactor;
     }
     // 跳跃的支持
     if (m.ops.bouncing) {
@@ -873,32 +822,33 @@ class Scroller {
       let peneDece = m.ops.peneDece;
       let peneAcce = m.ops.peneAcce;
       // 检查限制
-      if (scrollX < m.minDeceX) {
-        scrollOutsideX = m.minDeceX - scrollX;
-      } else if (scrollX > m.maxDeceX) {
-        scrollOutsideX = m.maxDeceX - scrollX;
+      if (scrollX < m._minDeceX) {
+        scrollOutsideX = m._minDeceX - scrollX;
+      } else if (scrollX > m._maxDeceX) {
+        scrollOutsideX = m._maxDeceX - scrollX;
       }
-      if (scrollY < m.minDeceY) {
-        scrollOutsideY = m.minDeceY - scrollY;
-      } else if (scrollY > m.maxDeceY) {
-        scrollOutsideY = m.maxDeceY - scrollY;
+      if (scrollY < m._minDeceY) {
+        scrollOutsideY = m._minDeceY - scrollY;
+      } else if (scrollY > m._maxDeceY) {
+        scrollOutsideY = m._maxDeceY - scrollY;
       }
       // 慢下来，直到足够慢，然后翻转回弹起位置
       if (scrollOutsideX !== 0) {
-        if (scrollOutsideX * m.velocityX <= 0) {
-          m.velocityX += scrollOutsideX * peneDece;
+        if (scrollOutsideX * m._velocityX <= 0) {
+          m._velocityX += scrollOutsideX * peneDece;
         } else {
-          m.velocityX = scrollOutsideX * peneAcce;
+          m._velocityX = scrollOutsideX * peneAcce;
         }
       }
       if (scrollOutsideY !== 0) {
-        if (scrollOutsideY * m.velocityY <= 0) {
-          m.velocityY += scrollOutsideY * peneDece;
+        if (scrollOutsideY * m._velocityY <= 0) {
+          m._velocityY += scrollOutsideY * peneDece;
         } else {
-          m.velocityY = scrollOutsideY * peneAcce;
+          m._velocityY = scrollOutsideY * peneAcce;
         }
       }
     }
   }
+
 }
 export default Scroller

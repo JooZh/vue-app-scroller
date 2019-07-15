@@ -70,7 +70,7 @@ export default {
       default: false,
       description:'是否开启像素网格移动'
     },
-    snappingType:{
+    snappingAlign:{
       type: String,
       default: 'default',
       description:'snapping使用类型 [default,select]'
@@ -152,7 +152,7 @@ export default {
         mousewheel: this.mousewheel,     // 开启鼠标滚轮事件监听
         paging: this.paging,            // 是否开启分页
         snapping: this.snapping,        // 是否开启像素网格
-        snappingType:this.snappingType,
+        snappingAlign:this.snappingAlign,
         snappingSelect:this.snappingSelect,
         snappingListIndex:this.snappingListIndex,
         animating: this.animating,      // 使用动画效果

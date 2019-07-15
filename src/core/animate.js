@@ -19,15 +19,21 @@ const Animate = (global => {
         global.webkitRequestAnimationFrame ||
         global.mozRequestAnimationFrame ||
         global.oRequestAnimationFrame;
+
+      // 判断是否是原生的方法
       let isNative = !!requestFrame;
+      console.log(requestFrame)
       if (requestFrame && !/requestAnimationFrame\(\)\s*\{\s*\[native code\]\s*\}/i.test(requestFrame.toString())) {
         isNative = false;
       }
+      // 如果浏览器支持原生方法之间使用
       if (isNative) {
         return function (callback, root) {
           requestFrame(callback, root)
         };
       }
+
+      //  不支持 创建一个
       let TARGET_FPS = 60;
       let requests = {};
       let requestCount = 0;

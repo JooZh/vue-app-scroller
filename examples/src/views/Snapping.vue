@@ -5,7 +5,7 @@
       <div class="item-title border-bottom-1px">基本使用</div>
       <div class="item-content scroll-y-bd y1 border-bottom-1px">
         <div class="flex-box" v-for="(item,index) in Array(4)" :key="index" :class="index!==3?'border-right-1px':''">
-          <vue-app-scroller 
+          <vue-app-scroller
             :scrollingY="true"
             :snapping="snapping"
             :data="itemsY">
@@ -18,7 +18,7 @@
       <div class="item-title border-bottom-1px">横向滚动</div>
       <div class="item-content scroll-x-bd border-bottom-1px">
         <div class="flex-box" v-for="(item,index) in Array(3)" :key="item" :class="index!==2?'border-bottom-1px':''">
-          <vue-app-scroller 
+          <vue-app-scroller
             :scrollingX="true"
             :snapping="snapping"
             :data="itemsX">
@@ -37,8 +37,8 @@
       </div>
       <div class="item-content scroll-y-bd y2 border-bottom-1px">
         <div class="flex-box" v-for="(item,index) in snappingArray" :key="index">
-          <vue-app-scroller 
-            snappingType="select"
+          <vue-app-scroller
+            snappingAlign="select"
             :scrollingY="true"
             :snapping="snapping"
             :snappingComplete="snappingComplete"
@@ -81,7 +81,7 @@
       }
       this.snappingArray=[1,2,0,6]
       let itemsX = []
-      
+
       for (let i = 1; i <= 10; i++) {
         itemsX.push('ScrollerX.'+i)
       }
@@ -161,7 +161,7 @@
         display: flex;
         justify-content: center;
         flex-direction: column;
-        span 
+        span
           display: block;
           width: 100%;
           height: 40px;

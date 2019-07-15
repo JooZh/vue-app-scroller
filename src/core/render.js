@@ -1,4 +1,5 @@
  const Render = (content) => {
+  // 浏览器能力检测，进行对应的渲染
   let global = window;
   let docStyle = document.documentElement.style;
   let engine;
