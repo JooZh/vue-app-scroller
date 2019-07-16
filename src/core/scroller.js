@@ -8,30 +8,30 @@ class Scroller {
     m._NOOP = function () {};
     // 自定义事件 用 on 监听，用 emit 发送
     m._handles = {
-      scroll:[],    // 发送滚动监听事件
-      loading:[]    // 发送下拉加载事件
+      scroll:[],          // 发送滚动监听事件
+      loading:[]          // 发送下拉加载事件
     }
     // 默认参数
     m.ops = {
-      listenScroll: false, // 是否启用滚动监听实时获取滚动位置
-      isPullRefresh:false,  // 是否监听下拉刷新
-      isReachBottom:false,  // 是否监听触底事件
-      scrollingX: false, //启用x轴滚动
-      scrollingY: false, //启用y轴滚动
-      animating: true, // 启用动画减速，弹回，缩放和滚动
-      animationDuration: 250, // 由scrollTo/zoomTo触发的动画持续时间
-      mousewheel:false,   // 是否启用鼠标滚轮事件
-			paging: false, //启用分页模式(在全容器内容窗格之间切换)
-      snap: false, // 启用对已配置像素网格的内容进行快照
-      snapAlign:'defalut',  // snapAlign使用的方式 select 为类似时间选择器
-      snapSelect:0,        // snap默认选中的值
-      snapListIndex:0,     // snap多列的时候的当前列
-      bouncing: true, // 启用弹跳(内容可以慢慢移到外面，释放后再弹回来)
-      speedRatio: 1, // 增加或减少滚动速度
-      scrollingComplete: m._NOOP, // 在触摸端或减速端后端触发的回调，前提是另一个滚动动作尚未开始。用于知道何时淡出滚动条
-      snapComplete: m._NOOP,  // snap 滑动完成后的执行事件
-      peneDece: 0.07, // 这配置了到达边界时应用于减速的更改量
-      peneAcce: 0.08 // 这配置了到达边界时施加于加速度的变化量
+      listenScroll: false,      // 是否启用滚动监听实时获取滚动位置
+      isPullRefresh:false,      // 是否监听下拉刷新
+      isReachBottom:false,      // 是否监听触底事件
+      scrollingX: false,        // 启用x轴滚动
+      scrollingY: false,        // 启用y轴滚动
+      animating: true,          // 启用动画减速，弹回，缩放和滚动
+      animationDuration: 250,   // 由scrollTo/zoomTo触发的动画持续时间
+      mousewheel:false,         // 是否启用鼠标滚轮事件
+			paging: false,            // 启用分页模式(在全容器内容窗格之间切换)
+      snap: false,              // 启用对已配置像素网格的内容进行快照
+      snapAlign:'top',          // snapAlign使用的方式 [top, middle] 居中对齐和顶部对齐
+      snapSelect:0,             // snap默认选中的值
+      snapListIndex:0,          // snap多列的时候的当前列
+      bouncing: true,           // 启用弹跳(内容可以慢慢移到外面，释放后再弹回来)
+      speedRatio: 1,            // 增加或减少滚动速度
+      scrollingComplete: m._NOOP,   // 在触摸端或减速端后端触发的回调，前提是另一个滚动动作尚未开始。用于知道何时淡出滚动条
+      snapComplete: m._NOOP,    // snap 滑动完成后的执行事件
+      peneDece: 0.07,           // 这配置了到达边界时应用于减速的更改量
+      peneAcce: 0.08            // 这配置了到达边界时施加于加速度的变化量
     };
     // 参数合并
     for (let key in options) {
@@ -94,61 +94,60 @@ class Scroller {
     let m = this;
     let dom = m._initSelector(selector)
     // 当前的滚动容器信息
-    m._render = Render(dom)         // 渲染函数
-    m._content = dom                // 滚动区域容器节点
-    m._container = dom.parentNode   // 可视区域容器节点
-    m._animate = Animate              // 动画库
-    m.scrollDirection = ''               // 滑动方向
+    m._render = Render(dom)           // 渲染函数
+    m._content = dom                  // 滚动区域容器节点
+    m._container = dom.parentNode     // 可视区域容器节点
+    m._animate = Animate              // 执行动画
+    m.scrollDirection = ''            // 滑动方向
     // 状态 {Boolean}
-    m._isTracking = false           //触摸事件序列是否正在进行中
-    m.completeDeceleration = false //是否完成减速动画
-    m._isDragging = false           //用户移动的距离是否已达到启用拖动模式的程度。 提示:只有在移动了一些像素后，才可以不被点击等打断。
-    m._isDecelerating = false     //是否正在减速中
-    m._isAnimating = false        //是否动画正在运行中
-    m.enableScrollX = false      //是否开启横向滚动
-    m.enableScrollY = false      //是否开启纵向向滚动
-    m._refreshActive = false      //现在释放事件时是否启用刷新进程
-    m._reachActive = false  //是否已经发送了触底事件
-    m.snapAlignInit = false   // 是否已经初始化了snap type = center
+    m._isTracking = false             // 触摸事件序列是否正在进行中
+    m.completeDeceleration = false    // 是否完成减速动画
+    m._isDragging = false             // 用户移动的距离是否已达到启用拖动模式的程度。 提示:只有在移动了一些像素后，才可以不被点击等打断。
+    m._isDecelerating = false         // 是否正在减速中
+    m._isAnimating = false            // 是否动画正在运行中
+    m.enableScrollX = false           // 是否开启横向滚动
+    m.enableScrollY = false           // 是否开启纵向向滚动
+    m._refreshActive = false          // 现在释放事件时是否启用刷新进程
+    m._reachActive = false            // 是否已经发送了触底事件
+    m.snapAlignInit = false           // 是否已经初始化了snap type = center
     m._interrupted = true
     //  {Function}
-    m._refreshStartCb = null        //执行回调以启动实际刷新
-    m._refreshCancelCb = null   //在停用时执行的回调。这是为了通知用户刷新被取消
-    m._refreshActiveCb = null     //回调函数，以在激活时执行。这是为了在用户释放时通知他即将发生刷新
+    m._refreshStartCb = null          // 执行回调以启动实际刷新
+    m._refreshCancelCb = null         // 在停用时执行的回调。这是为了通知用户刷新被取消
+    m._refreshActiveCb = null         // 回调函数，以在激活时执行。这是为了在用户释放时通知他即将发生刷新
     // {Number}
-    m.scrollX = 0      //当前在x轴上的滚动位置
-    m.scrollY = 0      //当前在y轴上的滚动位置
-    m.minScrollX = 0   // 最小允许横向滚动宽度
-    m.minScrollY = 0   // 最小允许纵向滚动高度
-    m.maxScrollX = 0   // 最大允许横向滚动宽度
-    m.maxScrollY = 0   // 最大允许纵向滚动高度
-    m._prevScrollX = 0  // 上一个横向滚动位置
-    m._prevScrollY = 0  // 上一个纵向滚动位置
+    m.scrollX = 0         // 当前在x轴上的滚动位置
+    m.scrollY = 0         // 当前在y轴上的滚动位置
+    m.minScrollX = 0      // 最小允许横向滚动宽度
+    m.minScrollY = 0      // 最小允许纵向滚动高度
+    m.maxScrollX = 0      // 最大允许横向滚动宽度
+    m.maxScrollY = 0      // 最大允许纵向滚动高度
+    m._prevScrollX = 0    // 上一个横向滚动位置
+    m._prevScrollY = 0    // 上一个纵向滚动位置
 
     m._scheduledX = 0     // 预定左侧位置(动画时的最终位置)
     m._scheduledY = 0     // 预定的顶部位置(动画时的最终位置)
     m._lastTouchX = 0     // 开始时手指的左侧位置
     m._lastTouchY = 0     // 开始时手指的顶部位置
     m._lastTouchT = null  // {Date} 手指最后移动的时间戳。用于限制减速速度的跟踪范围。
-    m._velocityX = 0 //当前因素修改水平滚动的位置与每一步
-    m._velocityY = 0 //当前因素修改垂直滚动位置与每一步
+    m._velocityX = 0      // 当前因素修改水平滚动的位置与每一步
+    m._velocityY = 0      // 当前因素修改垂直滚动位置与每一步
 
-    m._refreshH = 0    // 下拉刷新区域的高度
-    m._loadingH = 0    // 上拉加载区域的高度
-    m._contentW = 0     // 滚动内容宽度
-    m._contentH = 0    // 滚动内容高度
-    m._containerW = 0   // 可视容器宽度
-    m._containerH = 0  // 可视容器高度
-    m._snapW = 50       // 开启网格滑动时网格宽度
-    m._snapH = 50      // 开启网格滑动时网格高度
+    m._refreshH = 0       // 下拉刷新区域的高度
+    m._loadingH = 0       // 上拉加载区域的高度
+    m._contentW = 0       // 滚动内容宽度
+    m._contentH = 0       // 滚动内容高度
+    m._containerW = 0     // 可视容器宽度
+    m._containerH = 0     // 可视容器高度
+    m._snapW = 50         // 开启网格滑动时网格宽度
+    m._snapH = 50         // 开启网格滑动时网格高度
 
-    m._minDeceX = 0 //最小减速时X滚动位置
-    m._minDeceY = 0 //最小减速时Y滚动位置
-    m._maxDeceX = 0 //最大减速时X滚动位置
-    m._maxDeceY = 0 //最大减速时Y滚动位置
-    //
+    m._minDeceX = 0       // 最小减速时X滚动位置
+    m._minDeceY = 0       // 最小减速时Y滚动位置
+    m._maxDeceX = 0       // 最大减速时X滚动位置
+    m._maxDeceY = 0       // 最大减速时Y滚动位置
     // {Array} List
-    m._touchArr = null //位置列表，每个状态使用三个索引=左、上、时间戳
+    m._touchArr = null    // 位置列表，每个状态使用三个索引=左、上、时间戳
   }
   // 初始化事件监听
   _initEvent() {
@@ -227,7 +226,7 @@ class Scroller {
     m._loadingH = m.ops.isReachBottom ? childrens[childrens.length-1].offsetHeight : 0;
 
     // 剧中类型的选择
-    if(m.ops.snapAlign === 'select'){
+    if(m.ops.snapAlign === 'middle'){
       let itemCount = Math.floor(Math.round(m._containerH / m._snapH)/2)
       m._content.style.padding = `${itemCount*m._snapH}px 0`;
       if(!m.snapAlignInit){
@@ -254,7 +253,7 @@ class Scroller {
     }
   }
   /*---------------------------------------------------------------------------
-    动画效果
+    动画缓动函数
   --------------------------------------------------------------------------- */
   _easeOutCubic(pos) {
     return (Math.pow((pos - 1), 3) + 1);
@@ -496,30 +495,8 @@ class Scroller {
     return flag
   }
   /* ---------------------------------------------------------------------------
-    PUBLIC API
+    下拉刷新
   --------------------------------------------------------------------------- */
-  // 停止滚动，停止动画
-  _stopScroll(){
-    let m = this
-    // 重置中断动画标志
-    m._interrupted = true;
-    // 当减速停止时候停止动画
-    if (m._isDecelerating) {
-      m._animate.stop(m._isDecelerating);
-      m._isDecelerating = false;
-      m._interrupted = true;
-    }
-    // 当动画正在运行时候停止动画
-    if (m._isAnimating) {
-      m._animate.stop(m._isAnimating);
-      m._isAnimating = false;
-      m._interrupted = true;
-    }
-    // 复位减速完成标志
-    m.completeDeceleration = false;
-    // 清除数据结构
-    m._touchArr = [];
-  }
   // 激活pull-to-refresh。列表顶部的一个特殊区域，用于在用户事件在此区域可见期间被释放时启动列表刷新。
   activatePullToRefresh(activateCb, deactivateCb, startCb) {
     let m = this
@@ -539,7 +516,7 @@ class Scroller {
   /*---------------------------------------------------------------------------
     EVENT CALLBACKS
   ---------------------------------------------------------------------------*/
-  //订阅事件 注册给定类型的事件处理程序， type -> 自定义事件类型， handler -> 自定义事件回调函数
+  // 订阅事件 注册给定类型的事件处理程序， type -> 自定义事件类型， handler -> 自定义事件回调函数
   on(eventType, handle) {
     let m = this
     if (!m._handles.hasOwnProperty(eventType)) {
@@ -565,6 +542,28 @@ class Scroller {
   /*---------------------------------------------------------------------------
     PRIVATE API
   ---------------------------------------------------------------------------*/
+  // 停止滚动，停止动画
+  _stopScroll(){
+    let m = this
+    // 重置中断动画标志
+    m._interrupted = true;
+    // 当减速停止时候停止动画
+    if (m._isDecelerating) {
+      m._animate.stop(m._isDecelerating);
+      m._isDecelerating = false;
+      m._interrupted = true;
+    }
+    // 当动画正在运行时候停止动画
+    if (m._isAnimating) {
+      m._animate.stop(m._isAnimating);
+      m._isAnimating = false;
+      m._interrupted = true;
+    }
+    // 复位减速完成标志
+    m.completeDeceleration = false;
+    // 清除数据结构
+    m._touchArr = [];
+  }
   // 滚动到指定位置。边界限制，自动截断。
   _scrollTo(left, top, animate) {
     let m = this;
@@ -699,7 +698,7 @@ class Scroller {
   // 选择器完成事件，只在指定的情况下触法
   _snapComplete(){
     let m = this
-    if(m.ops.snapAlign === 'select'){
+    if(m.ops.snapAlign === 'middle'){
       m.ops.snapComplete(m._getSnapValue());
     }
   }

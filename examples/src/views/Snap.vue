@@ -34,7 +34,7 @@
       <div class="item-content scroll-y-bd y2 border-bottom-1px">
         <div class="flex-box" v-for="(item,index) in snapArray" :key="index">
           <vue-app-scroller
-            snapAlign="select"
+            snapAlign="middle"
             :scrollingY="true"
             :snap="snap"
             :snapComplete="snapComplete"

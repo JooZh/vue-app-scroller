@@ -11,7 +11,7 @@
         <div class="datetime-content">
           <div class="flex-box">
             <vue-app-scroller
-              snapAlign="select"
+              snapAlign="middle"
               :scrollingY="true"
               :snap="snap"
               :snapComplete="snapComplete"

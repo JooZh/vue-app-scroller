@@ -57,7 +57,7 @@
           }, 1500)
         }
       },
-      loadingMore(e) {
+      loadingMore(done) {
           setTimeout(() => {
             let start = this.bottom + 1
             let items = []
@@ -65,9 +65,11 @@
               for (let i = start; i < start + 9; i++) {
                 items.push(i + ' - keep walking, be 2 with you.')
               }
+              this.items = this.items.concat(items)
+              this.bottom = this.bottom + 9
+            }else{
+              done()
             }
-            this.items = this.items.concat(items)
-            this.bottom = this.bottom + 9
           }, 1500)
       },
 

@@ -73,8 +73,8 @@ export default {
     },
     snapAlign:{
       type: String,
-      default: 'default',
-      description:'snap使用类型 [default,select]'
+      default: 'top',
+      description:'snap使用类型 [top,middle]'
     },
     snapSelect:{
       type: Number,
