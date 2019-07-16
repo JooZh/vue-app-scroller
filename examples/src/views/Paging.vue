@@ -4,12 +4,8 @@
     <div class="scroller-container">
       <div class="item-title border-bottom-1px">纵向滚动</div>
       <div class="item-content scroll-y-bd border-bottom-1px">
-        <vue-app-scroller
-          :scrollingY="true"
-          :paging="true">
-          <div class="scroller-content">
-            <div class="row" v-for="(item, index) in itemsY" :class="{'grey-bg': index % 2 == 0}" :key="index">{{ item }}</div>
-          </div>
+        <vue-app-scroller :scrollingY="true" :paging="true">
+          <div class="row" v-for="(item, index) in itemsY" :class="{'grey-bg': index % 2 == 0}" :key="index">{{ item }}</div>
         </vue-app-scroller>
       </div>
       <div class="item-title border-bottom-1px">横向滚动</div>
@@ -17,11 +13,8 @@
         <vue-app-scroller
           :scrollingX="true"
           :paging="true"
-          :bouncing="true"
-          :data="itemsX">
-          <div ref="scrollerx" class="scroller-content">
-            <div class="row" v-for="(item, index) in itemsX" :class="{'grey-bg': index % 2 == 0}" :key="index">{{ item }}</div>
-          </div>
+          :bouncing="true">
+          <div class="row" v-for="(item, index) in itemsX" :class="{'grey-bg': index % 2 == 0}" :key="index">{{ item }}</div>
         </vue-app-scroller>
       </div>
     </div>
@@ -55,9 +48,6 @@
       }
       this.itemsX = itemsX;
 
-      setTimeout(()=>{
-        this.$refs.scrollerx.style.display = 'flex'
-      },30)
     },
     methods:{
       scrollingComplete(){
@@ -80,7 +70,7 @@
         font-size 30px;
     .scroll-x-bd
       height 200px;
-      .scroller-content
+      .scroller--content
         height 200px;
         .row
           height 100%;

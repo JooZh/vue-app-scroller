@@ -198,6 +198,10 @@ export default {
           let width = Math.round(item.getBoundingClientRect().width * 100) / 100;
           widths += width;
         })
+        // 对paging 模式添加固定样式
+        if(this.paging && this.scrollingX){
+          this.content.children[1].style.display = 'flex'
+        }
         this.content.style.width = Math.ceil(widths)+'px';
         this.scroller.refresh()
         clearTimeout(timer)
