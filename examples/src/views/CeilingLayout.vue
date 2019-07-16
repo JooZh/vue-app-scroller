@@ -7,8 +7,7 @@
         <vue-app-scroller
           ref="scroller"
           :scrollingY="true"
-          :onScroll="onScroll"
-          :data="itemsY">
+          :onScroll="onScroll">
           <div class="scroller-content">
             <template v-for="(item, index) in itemsY">
               <div ref="tab" class="title" :key="index">{{item.title}}</div>

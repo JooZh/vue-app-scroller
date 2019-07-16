@@ -241,6 +241,10 @@ export default {
         })
       }
     },
+     // 下拉刷新停止
+    onReachBottomDone(){
+      this.showLoading = false
+    },
     // 捕获下层点击事件，立即停止滚动
     onClickCapture(e){
       this.stopScroll()

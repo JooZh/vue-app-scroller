@@ -3,14 +3,13 @@
     <nav-bar title="PullRefresh & ReachBottom"></nav-bar>
     <div class="scroller-container">
       <vue-app-scroller
-        :scrollingY="true"  
+        :scrollingY="true"
         :onPullRefresh="refresh"
-        :onReachBottom ="loadingMore"
-        :data="items">
+        :onReachBottom ="loadingMore">
         <div
-          v-for="(item, index) in items" 
-          class="row" 
-          :class="{'grey-bg': index % 2 == 0}" 
+          v-for="(item, index) in items"
+          class="row"
+          :class="{'grey-bg': index % 2 == 0}"
           :key="index">{{ item }}</div>
       </vue-app-scroller>
     </div>
@@ -66,6 +65,8 @@
               for (let i = start; i < start + 9; i++) {
                 items.push(i + ' - keep walking, be 2 with you.')
               }
+            }else{
+
             }
             this.items = this.items.concat(items)
             this.bottom = this.bottom + 9

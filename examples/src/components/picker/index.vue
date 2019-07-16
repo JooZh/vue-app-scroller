@@ -16,8 +16,7 @@
               :snap="snap"
               :snapComplete="snapComplete"
               :snapSelect="0"
-              :snapListIndex="0"
-              :data="data">
+              :snapListIndex="0">
               <div class="scroller-content">
                 <div class="row" v-for="(value, key) in data" :key="key">{{ value.key }}</div>
               </div>

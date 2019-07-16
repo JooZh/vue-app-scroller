@@ -39,8 +39,7 @@
             :snap="snap"
             :snapComplete="snapComplete"
             :snapSelect="item"
-            :snapListIndex="index"
-            :data="itemsY">
+            :snapListIndex="index">
             <div class="row" v-for="(item, index) in itemsY" :key="index">{{ item }}</div>
           </vue-app-scroller>
         </div>

@@ -66,20 +66,19 @@ class Scroller {
     let observerMutationSupport = !!MutationObserver;
     if(observerMutationSupport){
         let observer = new MutationObserver((mutations) => {
-            let length = mutations.length
-            mutations.forEach((item,index) => {
-              if(m.ops.snap){
-                m.refresh()
-              }else{
-                if(length === index+1){
-                  let timer = setTimeout(()=>{
-                    m.refresh()
-                    console.log('refresh')
-                    clearTimeout (timer)
-                  },30)
-                }
+          let length = mutations.length -1
+          mutations.forEach((item,index) => {
+            if(m.ops.snap){
+              m.refresh()
+            }else{
+              if(length === index){
+                let timer = setTimeout(()=>{
+                  m.refresh()
+                  clearTimeout (timer)
+                },30)
               }
-            });
+            }
+          });
         });
         const options = {
             "childList" : true,//子节点的变动
@@ -247,8 +246,10 @@ class Scroller {
     // 判断是否需要发送下拉触底事件
     if(m.ops.isReachBottom){
       if(prevMaxScroll !== m.maxScrollY){
+        console.log(1,prevMaxScroll,m.maxScrollY)
         m._reachActive = false;
       }else{
+        console.log(2,m.maxScrollY)
         if(m.maxScrollY != 0){
           m.emit('loading',{
             hasMore: false

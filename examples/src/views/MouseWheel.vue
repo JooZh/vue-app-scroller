@@ -3,16 +3,15 @@
     <nav-bar title="MouseWheel"></nav-bar>
     <div class="scroller-container">
       <vue-app-scroller
-        :scrollingY="true" 
-        :mousewheel="true" 
+        :scrollingY="true"
+        :mousewheel="true"
         :onPullRefresh="refresh"
-        :onReachBottom ="loadingMore"
-        :data="items">
+        :onReachBottom ="loadingMore">
         <div
-          v-for="(item, index) in items" 
+          v-for="(item, index) in items"
           @click="onItemClick(index, item)"
-          class="row" 
-          :class="{'grey-bg': index % 2 == 0}" 
+          class="row"
+          :class="{'grey-bg': index % 2 == 0}"
           :key="index">
           {{ item }}
         </div>

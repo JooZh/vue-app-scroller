@@ -3,19 +3,18 @@
     <nav-bar title="Nesting Layout"></nav-bar>
     <div class="scroller-container">
       <div class="item-content scroll-y-bd border-bottom-1px">
-        <vue-app-scroller 
-          ref="scroller" 
-          :scrollingY="true" 
-          :onScroll="onScroll"
-          :data="itemsY">
+        <vue-app-scroller
+          ref="scroller"
+          :scrollingY="true"
+          :onScroll="onScroll">
           <div class="scroller-content">
             <div class="row" v-for="(item, index) in itemsY" :class="{'grey-bg': index % 2 == 0}" :key="'a'+index">{{ item }}</div>
             <div ref="tab1" class="in-scroller-tab">Tab1 Title</div>
             <div class="in-scroller-content border-bottom-1px border-top-1px">
-                <vue-app-scroller 
-                  ref="tab1scroller" 
-                  :scrollingY="false" 
-                  :bouncing="false"  
+                <vue-app-scroller
+                  ref="tab1scroller"
+                  :scrollingY="false"
+                  :bouncing="false"
                   :onScroll="tab1Scroll"
                   :data="itemsYY">
                   <div class="scroller-content">
@@ -26,10 +25,10 @@
             <div class="row" v-for="(item, index) in itemsY" :class="{'grey-bg': index % 2 == 0}" :key="'c'+index">{{ item }}</div>
             <!-- <div ref="tab2" class="in-scroller-tab">Tab2 Title</div>
             <div class="in-scroller-content border-bottom-1px border-top-1px">
-                <scroller 
-                  ref="tab2scroller" 
-                  :scrollingY="false" 
-                  :bouncing="false"  
+                <scroller
+                  ref="tab2scroller"
+                  :scrollingY="false"
+                  :bouncing="false"
                   :onScroll="tab2Scroll"
                   :data="itemsYY">
                   <div class="scroller-content">
@@ -90,7 +89,7 @@
       }
       this.itemsY = itemsY;
       this.itemsYY = itemsYY;
-      
+
     },
     methods:{
       onScroll(e){
@@ -164,11 +163,11 @@
         width 100%;
         font-size 24px;
         .emng
-          position absolute 
+          position absolute
           top 0
           left 0
           bottom 0
           right 0
           pointer-events none
-    
+
 </style>

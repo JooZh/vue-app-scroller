@@ -2,7 +2,7 @@
   <div>
     <nav-bar title="Click"></nav-bar>
     <div class="scroller-container">
-      <vue-app-scroller :scrollingY="true" :data="items">
+      <vue-app-scroller :scrollingY="true">
         <div
           v-for="(item, index) in items"
           class="row"

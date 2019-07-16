@@ -3,14 +3,13 @@
     <nav-bar title="ReachBottom"></nav-bar>
     <div class="scroller-container">
       <vue-app-scroller
-        :scrollingY="true"  
-        :onReachBottom ="loadingMore"
-        :data="items">
+        :scrollingY="true"
+        :onReachBottom ="loadingMore">
         <div
-          v-for="(item, index) in items" 
+          v-for="(item, index) in items"
           @click="onItemClick(index, item)"
-          class="row" 
-          :class="{'grey-bg': index % 2 == 0}" 
+          class="row"
+          :class="{'grey-bg': index % 2 == 0}"
           :key="index">
           {{ item }}
         </div>

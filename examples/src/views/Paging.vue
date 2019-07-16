@@ -4,10 +4,9 @@
     <div class="scroller-container">
       <div class="item-title border-bottom-1px">纵向滚动</div>
       <div class="item-content scroll-y-bd border-bottom-1px">
-        <vue-app-scroller 
+        <vue-app-scroller
           :scrollingY="true"
-          :paging="true"
-          :data="itemsY">
+          :paging="true">
           <div class="scroller-content">
             <div class="row" v-for="(item, index) in itemsY" :class="{'grey-bg': index % 2 == 0}" :key="index">{{ item }}</div>
           </div>
@@ -15,8 +14,8 @@
       </div>
       <div class="item-title border-bottom-1px">横向滚动</div>
       <div class="item-content scroll-x-bd border-bottom-1px">
-        <vue-app-scroller 
-          :scrollingX="true" 
+        <vue-app-scroller
+          :scrollingX="true"
           :paging="true"
           :bouncing="true"
           :data="itemsX">
