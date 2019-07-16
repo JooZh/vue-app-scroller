@@ -30,7 +30,6 @@
 <script>
 // import Scroller from '../new/new-scroller.js'
 import Scroller from '../core/scroller.js'
-
 import Spinner from './Spinner.vue'
 import Arrow from './Arrow.vue'
 
@@ -154,8 +153,8 @@ export default {
         mousewheel: this.mousewheel,     // 开启鼠标滚轮事件监听
         paging: this.paging,            // 是否开启分页
         snap: this.snap,        // 是否开启像素网格
-        snapAlign:this.snapAlign,
-        snapSelect:this.snapSelect,
+        snapAlign: this.snapAlign,
+        snapSelect: this.snapSelect,
         snapListIndex:this.snapListIndex,
         animating: this.animating,      // 使用动画效果
         animationDuration: this.duration,
@@ -173,7 +172,6 @@ export default {
       //   }
       // },{ deep: true});
       // 根据是否绑定监听函数来判断是否调用
-      // this.showLoading = true
       this.scrollingX && this.getContentWidth()
       !!this.onScroll && this.onScrollHandler();
       !!this.onPullRefresh && this.onPullRefreshHandler();
@@ -238,9 +236,7 @@ export default {
         this.scroller.on('loading',(e)=>{
           if(e.hasMore){
             this.showLoading = true
-            this.onReachBottom(e)
-          }else{
-            this.showLoading = false
+            this.onReachBottom(this.onReachBottomDone)
           }
         })
       }

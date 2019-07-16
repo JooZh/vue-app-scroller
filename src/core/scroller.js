@@ -3,11 +3,9 @@ import PublicApi from './api.js'
 import Render from './render.js'
 class Scroller {
   constructor(selector, options) {
-
     let m = this
     // 空函数用于初始化操作结束的回调
     m._NOOP = function () {};
-    m.isRefreshDone = true;
     // 自定义事件 用 on 监听，用 emit 发送
     m._handles = {
       scroll:[],    // 发送滚动监听事件
@@ -61,7 +59,7 @@ class Scroller {
     } else if(typeof selector === 'object' && selector.nodeType === 1) {
       dom = selector
     }
-    // 启动 dom 监听事件
+    // 启动 dom 变化 监听事件 用于更新滚动区域后重新计算当前可滚动区域
     let MutationObserver = window.MutationObserver || window.WebKitMutationObserver|| window.MozMutationObserver;
     let observerMutationSupport = !!MutationObserver;
     if(observerMutationSupport){
@@ -80,15 +78,14 @@ class Scroller {
             }
           });
         });
-        const options = {
-            "childList" : true,//子节点的变动
-            // "attributes" : true,//属性的变动
-            // "characterData" : true,//节点内容或节点文本的变动
-            "subtree" : true//所有后代节点的变动
-            // "attributeOldValue" : true,//表示观察attributes变动时，是否需要记录变动前的属性
-            // "characterDataOldValue" : true//表示观察characterData变动时，是否需要记录变动前的值
-        };
-        observer.observe(dom.children[1],options);
+        observer.observe(dom.children[1],{
+          "childList" : true,//子节点的变动
+          "subtree" : true//所有后代节点的变动
+          // "attributes" : true,//属性的变动
+          // "characterData" : true,//节点内容或节点文本的变动
+          // "attributeOldValue" : true,//表示观察attributes变动时，是否需要记录变动前的属性
+          // "characterDataOldValue" : true//表示观察characterData变动时，是否需要记录变动前的值
+        });
     }
     return dom
   }
@@ -157,17 +154,14 @@ class Scroller {
   _initEvent() {
     let m =this;
     let el = m._container;
-    // 重置锁定标志
-    // m.enableScrollX = m.ops.scrollingX;
-    // m.enableScrollY = m.ops.scrollingY;
     // 判断是否支持触摸事件
     const supportTouch = (window.Modernizr && !!window.Modernizr.touch) || (()=>{
       return !!(('ontouchstart' in window) || window.DocumentTouch && document instanceof DocumentTouch);
     })();
     const _event = {
-        start: supportTouch ? 'touchstart' : 'mousedown',
-        move: supportTouch ? 'touchmove' : 'mousemove',
-        end: supportTouch ? 'touchend' : 'mouseup'
+      start: supportTouch ? 'touchstart' : 'mousedown',
+      move: supportTouch ? 'touchmove' : 'mousemove',
+      end: supportTouch ? 'touchend' : 'mouseup'
     };
     // 触摸开始事件
     el.addEventListener(_event.start, e => {
@@ -231,7 +225,8 @@ class Scroller {
     // 保存下拉刷新和上拉加载的高度
     m._refreshH = m.ops.isPullRefresh ? childrens[0].offsetHeight : 0;
     m._loadingH = m.ops.isReachBottom ? childrens[childrens.length-1].offsetHeight : 0;
-    // 选择居中
+
+    // 剧中类型的选择
     if(m.ops.snapAlign === 'select'){
       let itemCount = Math.floor(Math.round(m._containerH / m._snapH)/2)
       m._content.style.padding = `${itemCount*m._snapH}px 0`;
@@ -243,20 +238,10 @@ class Scroller {
     // 更新可滚动区域的尺寸。
     m.maxScrollX = Math.max(m._contentW - m._containerW, 0);
     m.maxScrollY = Math.max(m._contentH - m._containerH, 0) - m._refreshH;
-    // 判断是否需要发送下拉触底事件
-    if(m.ops.isReachBottom){
-      if(prevMaxScroll !== m.maxScrollY){
-        console.log(1,prevMaxScroll,m.maxScrollY)
-        m._reachActive = false;
-      }else{
-        console.log(2,m.maxScrollY)
-        if(m.maxScrollY != 0){
-          m.emit('loading',{
-            hasMore: false
-          })
-        }
-      }
-    }
+
+    // 更新可上拉加载状态区域
+    m._reachActive = false;
+
     // 更新滚动位置
     m._scrollTo(m.scrollX, m.scrollY, true);
   }
@@ -500,7 +485,7 @@ class Scroller {
       m._velocityX = movedX / timeOffset * (1000 / 60);
       m._velocityY = movedY / timeOffset * (1000 / 60);
       // 开始减速需要多少速度
-      let minVelocityToStartDeceleration = m.ops.paging || m.ops.snap ? 4 : 1;;
+      let minVelocityToStartDeceleration = m.ops.paging || m.ops.snap ? 4 : 1;
       // 验证我们有足够的速度开始减速
       let isVelocityX = Math.abs(m._velocityX) > minVelocityToStartDeceleration
       let isVelocityY = Math.abs(m._velocityY) > minVelocityToStartDeceleration
@@ -682,10 +667,10 @@ class Scroller {
         m._render(left, top);
       }
     }
-    // 是否需要监听触底事件
+    // 节流 是否需要监听触底事件
     if(m.ops.isReachBottom && !m._reachActive){
       let scrollYn = Number(m.scrollY.toFixed());
-      let absMaxScrollYn =  m.maxScrollY - m._loadingH;
+      let absMaxScrollYn = m.maxScrollY - m._loadingH;
       if(scrollYn > absMaxScrollYn && absMaxScrollYn > 0){
         m.emit('loading',{
           hasMore: true
@@ -696,8 +681,8 @@ class Scroller {
     // 是否需要监听滚动事件
     if(m.ops.listenScroll){
       // 节流 只判断整数变化
-      let isChangeX = m._prevScrollX.toFixed() !== m.scrollX.toFixed()
-      let isChangeY = m._prevScrollY.toFixed() !== m.scrollY.toFixed()
+      let isChangeX = m._prevScrollX.toFixed() !== m.scrollX.toFixed();
+      let isChangeY = m._prevScrollY.toFixed() !== m.scrollY.toFixed();
       if(isChangeX || isChangeY){
         m.emit('scroll', {
           x: Math.floor(m.scrollX),
@@ -715,8 +700,7 @@ class Scroller {
   _snapComplete(){
     let m = this
     if(m.ops.snapAlign === 'select'){
-      let select = m._getSnapValue()
-      m.ops.snapComplete(select);
+      m.ops.snapComplete(m._getSnapValue());
     }
   }
   // 计算当前snap选择的是哪个节点
@@ -879,6 +863,6 @@ class Scroller {
       }
     }
   }
-
 }
+
 export default Scroller

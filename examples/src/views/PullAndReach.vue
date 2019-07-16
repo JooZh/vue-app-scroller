@@ -57,20 +57,20 @@
         }
       },
 
-      loadingMore(e) {
-          setTimeout(() => {
-            let start = this.bottom + 1
-            let items = []
-            if(this.bottom < 40){
-              for (let i = start; i < start + 9; i++) {
-                items.push(i + ' - keep walking, be 2 with you.')
-              }
-            }else{
-
+      loadingMore(done) {
+        setTimeout(() => {
+          let start = this.bottom + 1
+          let items = []
+          if(this.bottom < 40){
+            for (let i = start; i < start + 9; i++) {
+              items.push(i + ' - keep walking, be 2 with you.')
             }
             this.items = this.items.concat(items)
             this.bottom = this.bottom + 9
-          }, 1500)
+          }else{
+            done()
+          }
+        }, 1500)
       }
     }
   }
