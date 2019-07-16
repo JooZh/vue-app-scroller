@@ -1,6 +1,6 @@
 <template>
   <div class="home-container">
-    <vue-app-scroller :scrollingY="true">
+    <!-- <vue-app-scroller :scrollingY="true"> -->
       <div class="scroller-content">
         <h1 class="plugin-name">Vue-App-Scroller</h1>
         <p class="for-vue">for Vue.js 2.0</p>
@@ -9,7 +9,7 @@
           <div class="right">
             <span>【 基本功能 】</span>
             <img src="../assets/arrow-right.png" class="arrow-right">
-          </div>  
+          </div>
         </router-link>
         <router-link class="row" tag="label" to="/refresh">
           <span class="left">PullRefresh & ReachBottom</span>
@@ -32,14 +32,14 @@
             <img src="../assets/arrow-right.png" class="arrow-right">
           </div>
         </router-link>
-        <router-link class="row grey-bg" tag="label" to="/snapping">
+        <router-link class="row grey-bg" tag="label" to="/snap">
           <span class="left">Snapping</span>
           <div class="right">
             <span>【 滑动网格 】</span>
             <img src="../assets/arrow-right.png" class="arrow-right">
           </div>
         </router-link>
-        <router-link class="row" tag="label" to="/snapping-components">
+        <router-link class="row" tag="label" to="/snap-components">
           <span class="left">Snapping Components</span>
           <div class="right">
             <span>【 滑动组件 】</span>
@@ -68,13 +68,13 @@
           </div>
         </router-link>
       </div>
-    </vue-app-scroller>
+    <!-- </vue-app-scroller> -->
   </div>
 </template>
 
 <script>
 export default {
-  
+
 }
 </script>
 <style lang="stylus">
@@ -96,7 +96,7 @@ export default {
       font-size: 32px;
       line-height: 40px;
       margin-bottom: 10px;
-    .for-vue 
+    .for-vue
       text-align: center;
       color: #666;
       margin-bottom: 30px;

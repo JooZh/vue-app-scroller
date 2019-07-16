@@ -1,19 +1,19 @@
 <template>
-  <div class="snapping-compontens">
+  <div class="snap-compontens">
     <nav-bar title="Snapping Components"></nav-bar>
     <div class="scroller-container">
       <div class="item-title border-bottom-1px">时间选择器</div>
-      <div class="buttons"> 
+      <div class="buttons">
         <div class="button" @click="openDateTime1">{{dateTime}}</div>
         <div class="button" @click="openDateTime2">{{date}}</div>
         <div class="button" @click="openDateTime3">{{time}}</div>
       </div>
       <div class="item-title border-bottom-1px">内容选择器</div>
-      <div class="buttons"> 
+      <div class="buttons">
         <div class="button" @click="openDateTime4">{{only}}</div>
       </div>
       <div class="item-title border-bottom-1px">城市选择器</div>
-      <div class="buttons"> 
+      <div class="buttons">
         <div class="button">{{city}}</div>
       </div>
     </div>
@@ -98,7 +98,7 @@
   }
 </script>
 <style lang="stylus">
-  .snapping-compontens
+  .snap-compontens
     .buttons
       padding 20px;
       .button

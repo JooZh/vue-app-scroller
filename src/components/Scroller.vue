@@ -1,6 +1,6 @@
 <template>
   <div ref="container" class="vue-app-scroller__container">
-    <div ref="content" class="vue-app-scroller__content">
+    <div ref="content" class="vue-app-scroller__content" @click.capture="onClickCapture">
       <div class="refresh--content" v-if="!!onPullRefresh" :class="{'active': refreshState !== 0}">
         <div class="refresh--content__icons">
           <spinner class="icon__spinner"  v-if="refreshState == 2" style="fill:#AAA;stroke:#AAA"></spinner>
@@ -13,7 +13,9 @@
         </div>
       </div>
       <span v-else class="refresh-no"></span>
-      <slot></slot>
+      <div class="scroller--content">
+        <slot></slot>
+      </div>
       <div class="loading--content" v-if="!!onReachBottom" >
         <span v-if="showLoading" class="spinner-holder">
           <spinner class="icon__spinner" style="fill: #AAA;stroke: #AAA"></spinner>
@@ -65,22 +67,22 @@ export default {
       default:false,
       description:'是否开启鼠标滚动'
     },
-    snapping:{
+    snap:{
       type: [Boolean,Number,Array],
       default: false,
       description:'是否开启像素网格移动'
     },
-    snappingAlign:{
+    snapAlign:{
       type: String,
       default: 'default',
-      description:'snapping使用类型 [default,select]'
+      description:'snap使用类型 [default,select]'
     },
-    snappingSelect:{
+    snapSelect:{
       type: Number,
       default: 0,
       description:'默认选中的值'
     },
-    snappingListIndex:{
+    snapListIndex:{
       type: Number,
       default: 0,
       description:'当前的组序列'
@@ -110,7 +112,7 @@ export default {
       default: (()=>function(){})(),
       description:'滑动完成后的回调'
     },
-    snappingComplete:{
+    snapComplete:{
       type: Function,
       default: (()=>function(){})(),
       description:'选择完成后的回调'
@@ -134,7 +136,7 @@ export default {
   },
   // 对 keep alive激活组件使用
   activated () {
-    this.scroller.refresh()
+    this.refresh()
   },
   methods:{
     // 初始化
@@ -145,47 +147,49 @@ export default {
       // 实例化 Scroller
       this.scroller = new Scroller(this.content, {
         listenScroll:!!this.onScroll,       // 是否需要监听滚动事件
-        isPullRefresh:!!this.onPullRefresh, //  是否启用下拉刷新事件
+        isPullRefresh:!!this.onPullRefresh, // 是否启用下拉刷新事件
         isReachBottom:!!this.onReachBottom, // 是否启用上拉加载事件
         scrollingX: this.scrollingX,    // 开启横向滚动
         scrollingY: this.scrollingY,    // 开启纵向滚动
         mousewheel: this.mousewheel,     // 开启鼠标滚轮事件监听
         paging: this.paging,            // 是否开启分页
-        snapping: this.snapping,        // 是否开启像素网格
-        snappingAlign:this.snappingAlign,
-        snappingSelect:this.snappingSelect,
-        snappingListIndex:this.snappingListIndex,
+        snap: this.snap,        // 是否开启像素网格
+        snapAlign:this.snapAlign,
+        snapSelect:this.snapSelect,
+        snapListIndex:this.snapListIndex,
         animating: this.animating,      // 使用动画效果
         animationDuration: this.duration,
         bouncing: this.bouncing,                  // 开启回弹效果
         scrollingComplete: this.scrollingComplete,  // 滑动完成后的回调事件
-        snappingComplete: this.snappingComplete      // 选择完成后的回调事件 多用于 snapping
+        snapComplete: this.snapComplete      // 选择完成后的回调事件 多用于 snap
       });
       // 数据发生变化后更新 dom 性能优化
-      this.$watch('data',(newData,oldData)=>{
-        this.$nextTick(()=>{
-          //重置加载状态
-          if(newData.length === 0 ){
-            this.showLoading = true
-          }else{
-            this.refresh()
-          }
-        })
-      },{ deep: true});
-      console.log(this.scroller)
+      // this.$watch('data',(newData,oldData)=>{
+      //   //重置加载状态
+      //   if(newData.length === 0 ){
+      //     this.showLoading = true
+      //   }else{
+      //     this.refresh()
+      //   }
+      // },{ deep: true});
       // 根据是否绑定监听函数来判断是否调用
+      // this.showLoading = true
+      this.scrollingX && this.getContentWidth()
       !!this.onScroll && this.onScrollHandler();
       !!this.onPullRefresh && this.onPullRefreshHandler();
       !!this.onReachBottom && this.onReachBottomHandler();
     },
     // 数据更新下后 调用刷新
     refresh(){
-      this.getContentWidth()
-      this.scroller.refresh()
+      if(this.scrollingX){
+        this.getContentWidth()
+      }else{
+        this.scroller.refresh()
+      }
     },
     // 获取横向滚动的数据
     getContentWidth(){
-      if(this.scrollingX){
+      let timer = setTimeout(()=>{
         // 得到宽度
         let widths = 0;
         let contentDoms = this.content.children[1].children
@@ -195,7 +199,9 @@ export default {
           widths += width;
         })
         this.content.style.width = Math.ceil(widths)+'px';
-      }
+        this.scroller.refresh()
+        clearTimeout(timer)
+      },30)
     },
     // 监听滚动事件处理
     onScrollHandler(){
@@ -234,6 +240,10 @@ export default {
           }
         })
       }
+    },
+    // 捕获下层点击事件，立即停止滚动
+    onClickCapture(e){
+      this.stopScroll()
     },
     // 获取属性
     getAttr(key){

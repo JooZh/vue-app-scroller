@@ -2,10 +2,12 @@ import Animate from './animate.js'
 import PublicApi from './api.js'
 import Render from './render.js'
 class Scroller {
-  constructor(dom, options) {
+  constructor(selector, options) {
+
     let m = this
     // 空函数用于初始化操作结束的回调
     m._NOOP = function () {};
+    m.isRefreshDone = true;
     // 自定义事件 用 on 监听，用 emit 发送
     m._handles = {
       scroll:[],    // 发送滚动监听事件
@@ -22,14 +24,14 @@ class Scroller {
       animationDuration: 250, // 由scrollTo/zoomTo触发的动画持续时间
       mousewheel:false,   // 是否启用鼠标滚轮事件
 			paging: false, //启用分页模式(在全容器内容窗格之间切换)
-      snapping: false, // 启用对已配置像素网格的内容进行快照
-      snappingAlign:'defalut',  // snappingAlign使用的方式 select 为类似时间选择器
-      snappingSelect:0,        // snapping默认选中的值
-      snappingListIndex:0,     // snapping多列的时候的当前列
+      snap: false, // 启用对已配置像素网格的内容进行快照
+      snapAlign:'defalut',  // snapAlign使用的方式 select 为类似时间选择器
+      snapSelect:0,        // snap默认选中的值
+      snapListIndex:0,     // snap多列的时候的当前列
       bouncing: true, // 启用弹跳(内容可以慢慢移到外面，释放后再弹回来)
       speedRatio: 1, // 增加或减少滚动速度
       scrollingComplete: m._NOOP, // 在触摸端或减速端后端触发的回调，前提是另一个滚动动作尚未开始。用于知道何时淡出滚动条
-      snappingComplete: m._NOOP,  // snapping 滑动完成后的执行事件
+      snapComplete: m._NOOP,  // snap 滑动完成后的执行事件
       peneDece: 0.07, // 这配置了到达边界时应用于减速的更改量
       peneAcce: 0.08 // 这配置了到达边界时施加于加速度的变化量
     };
@@ -37,21 +39,64 @@ class Scroller {
     for (let key in options) {
       m.ops[key] = options[key];
     }
-    // 初始化内置参数
-    m._initAttr(dom);
-    // 初始化snapping大小
-    m._initSnapSize(m.ops.snapping)
-    // 初始化事件监听
-    m._initEvent();
     // 初始化对外api
     m._initPublicApi()
+    // 初始化内置参数
+    m._initAttr(selector);
+    // 初始化snap大小
+    m._initSnapSize(m.ops.snap)
+    // 初始化事件监听
+    m._initEvent();
+
   }
   /*---------------------------------------------------------------------------
     初始化私有方法
   --------------------------------------------------------------------------- */
-  // 初始化参数
-  _initAttr(dom){
+  // 初始化dom选择器
+  _initSelector(selector){
     let m = this;
+    let dom = null;
+    if(typeof selector === 'string'){
+      dom = document.querySelector(selector);
+    } else if(typeof selector === 'object' && selector.nodeType === 1) {
+      dom = selector
+    }
+    // 启动 dom 监听事件
+    let MutationObserver = window.MutationObserver || window.WebKitMutationObserver|| window.MozMutationObserver;
+    let observerMutationSupport = !!MutationObserver;
+    if(observerMutationSupport){
+        let observer = new MutationObserver((mutations) => {
+            let length = mutations.length
+            mutations.forEach((item,index) => {
+              if(m.ops.snap){
+                m.refresh()
+              }else{
+                if(length === index+1){
+                  let timer = setTimeout(()=>{
+                    m.refresh()
+                    console.log('refresh')
+                    clearTimeout (timer)
+                  },30)
+                }
+              }
+            });
+        });
+        const options = {
+            "childList" : true,//子节点的变动
+            // "attributes" : true,//属性的变动
+            // "characterData" : true,//节点内容或节点文本的变动
+            "subtree" : true//所有后代节点的变动
+            // "attributeOldValue" : true,//表示观察attributes变动时，是否需要记录变动前的属性
+            // "characterDataOldValue" : true//表示观察characterData变动时，是否需要记录变动前的值
+        };
+        observer.observe(dom.children[1],options);
+    }
+    return dom
+  }
+  // 初始化参数
+  _initAttr(selector){
+    let m = this;
+    let dom = m._initSelector(selector)
     // 当前的滚动容器信息
     m._render = Render(dom)         // 渲染函数
     m._content = dom                // 滚动区域容器节点
@@ -68,7 +113,7 @@ class Scroller {
     m.enableScrollY = false      //是否开启纵向向滚动
     m._refreshActive = false      //现在释放事件时是否启用刷新进程
     m._reachActive = false  //是否已经发送了触底事件
-    m.snappingAlignInit = false   // 是否已经初始化了snapping type = center
+    m.snapAlignInit = false   // 是否已经初始化了snap type = center
     m._interrupted = true
     //  {Function}
     m._refreshStartCb = null        //执行回调以启动实际刷新
@@ -114,43 +159,32 @@ class Scroller {
     let m =this;
     let el = m._container;
     // 重置锁定标志
-    m.enableScrollX = m.ops.scrollingX;
-    m.enableScrollY = m.ops.scrollingY;
+    // m.enableScrollX = m.ops.scrollingX;
+    // m.enableScrollY = m.ops.scrollingY;
+    // 判断是否支持触摸事件
+    const supportTouch = (window.Modernizr && !!window.Modernizr.touch) || (()=>{
+      return !!(('ontouchstart' in window) || window.DocumentTouch && document instanceof DocumentTouch);
+    })();
+    const _event = {
+        start: supportTouch ? 'touchstart' : 'mousedown',
+        move: supportTouch ? 'touchmove' : 'mousemove',
+        end: supportTouch ? 'touchend' : 'mouseup'
+    };
     // 触摸开始事件
-    el.addEventListener('touchstart', e => {
-      if (!e.target.tagName.match(/input|textarea|select/i)) {
-        m.doTouchStart(e.touches, e.timeStamp)
-      }
-    })
+    el.addEventListener(_event.start, e => {
+      if (e.target.tagName.match(/input|textarea|select/i)) return;
+      e.preventDefault();
+      m.doTouchStart(e.touches, e.timeStamp)
+    }, false)
     // 触摸移动事件
-    el.addEventListener('touchmove', e => {
+    el.addEventListener(_event.move, e => {
       e.preventDefault()
       m.doTouchMove(e.touches, e.timeStamp)
-    })
+    }, false)
     // 触摸结束事件
-    el.addEventListener('touchend', e => {
+    el.addEventListener(_event.end, e => {
       m.doTouchEnd(e.timeStamp)
-    })
-    // 鼠标点击事件
-    el.addEventListener('mousedown', e => {
-      if (!e.target.tagName.match(/input|textarea|select/i)) {
-        m.doTouchStart([{
-          pageX: e.pageX,
-          pageY: e.pageY
-        }], e.timeStamp)
-      }
-    })
-    // 鼠标移动事件
-    el.addEventListener('mousemove', e => {
-      m.doTouchMove([{
-        pageX: e.pageX,
-        pageY: e.pageY
-      }], e.timeStamp)
-    })
-    // 鼠标离开事件
-    el.addEventListener('mouseup', e => {
-      m.doTouchEnd(e.timeStamp)
-    })
+    }, false)
     // 鼠标滚动事件
     if(m.ops.mousewheel){
       el.addEventListener('mousewheel', e => {
@@ -162,18 +196,18 @@ class Scroller {
           m.scrollY = 0
         }
         m._publish(m.scrollX, m.scrollY, true);
-      })
+      }, false)
     }
   }
-  // 初始化snapping大小
-  _initSnapSize(snapping) {
+  // 初始化snap大小
+  _initSnapSize(snap) {
     let m = this
-    if(typeof snapping === 'number'){
-      m._snapW = snapping;
-      m._snapH = snapping;
-    }else if(Array.isArray(snapping)){
-      m._snapW = snapping[0];
-      m._snapH = snapping[1];
+    if(typeof snap === 'number'){
+      m._snapW = snap;
+      m._snapH = snap;
+    }else if(Array.isArray(snap)){
+      m._snapW = snap[0];
+      m._snapH = snap[1];
     }
   }
   // 设置滚动可视区域
@@ -184,6 +218,13 @@ class Scroller {
     m._containerH = m._container.offsetHeight
     m._contentW = m._content.offsetWidth
     m._contentH = m._content.offsetHeight
+    // 判断是否能开启滚动
+    if (m._contentW > m._containerW && m.ops.scrollingX){
+      m.enableScrollX = m.ops.scrollingX;
+    }
+    if (m._contentH > m._containerH && m.ops.scrollingY){
+      m.enableScrollY = m.ops.scrollingY;
+    }
     // 保留上一次的最大可滚动值
     let prevMaxScroll = m.maxScrollY;
     // 获取子节点
@@ -191,21 +232,18 @@ class Scroller {
     // 保存下拉刷新和上拉加载的高度
     m._refreshH = m.ops.isPullRefresh ? childrens[0].offsetHeight : 0;
     m._loadingH = m.ops.isReachBottom ? childrens[childrens.length-1].offsetHeight : 0;
-    // 更新可滚动区域的尺寸。
-    // 是否开启居中类型snap的限制滑动区域
-    if(m.ops.snappingAlign === 'select'){
-      let itemCount = Math.round(m._containerH / m._snapH)
-      m.minScrollY = -m._snapH * Math.floor(itemCount / 2)
-      m.maxScrollY = m.minScrollY + (childrens[1].children.length-1) * m._snapH
-      // 防止多次
-      if(!m.snappingAlignInit){
-        m.scrollY = m.minScrollY + (m.ops.snappingSelect * m._snapH)
-        m.snappingAlignInit = true;
+    // 选择居中
+    if(m.ops.snapAlign === 'select'){
+      let itemCount = Math.floor(Math.round(m._containerH / m._snapH)/2)
+      m._content.style.padding = `${itemCount*m._snapH}px 0`;
+      if(!m.snapAlignInit){
+        m.scrollY = m.minScrollY + (m.ops.snapSelect * m._snapH)
+        m.snapAlignInit = true;
       }
-    }else{
-      m.maxScrollX = Math.max(m._contentW - m._containerW, 0);
-      m.maxScrollY = Math.max(m._contentH - m._containerH, 0) - m._refreshH;
     }
+    // 更新可滚动区域的尺寸。
+    m.maxScrollX = Math.max(m._contentW - m._containerW, 0);
+    m.maxScrollY = Math.max(m._contentH - m._containerH, 0) - m._refreshH;
     // 判断是否需要发送下拉触底事件
     if(m.ops.isReachBottom){
       if(prevMaxScroll !== m.maxScrollY){
@@ -297,9 +335,10 @@ class Scroller {
       // 否则，看看我们现在是否切换到拖拽模式。
     } else {
       // 给定进入拖拽的最小距离
-      let minMoveDistance = 3;
+      let minMoveDistance = 5;
       let distanceX = Math.abs(currentTouchX - m._lastTouchX);  // 横向滑动距离绝对值
       let distanceY = Math.abs(currentTouchY - m._lastTouchY);  // 纵向滑动距离绝对值
+
       //有一定的触摸滑动距离后开启拖拽模式
       m._isDragging = distanceX >= minMoveDistance || distanceY >= minMoveDistance;
       // 如果进入拖拽模式解除动画中断标志
@@ -395,15 +434,10 @@ class Scroller {
     let scroll = 'scroll'+D;
     let maxScroll = 'maxScroll'+D;
     m[scroll] -= move * m.ops.speedRatio;
-
     if (m[scroll] > m[maxScroll] || m[scroll] < 0) {
       // 在边缘放慢速度
       if (m.ops.bouncing) {
-        if(m.ops.snappingAlign === 'select'){
-          m[scroll] += (move / 10 * m.ops.speedRatio);
-        }else{
-          m[scroll] += (move / 2 * m.ops.speedRatio);
-        }
+        m[scroll] += (move / 1.5 * m.ops.speedRatio);
         D === 'Y' && m._doTouchMovePullRefresh();
       } else if (m[scroll] > m[maxScroll]) {
         m[scroll] = m[maxScroll];
@@ -465,7 +499,7 @@ class Scroller {
       m._velocityX = movedX / timeOffset * (1000 / 60);
       m._velocityY = movedY / timeOffset * (1000 / 60);
       // 开始减速需要多少速度
-      let minVelocityToStartDeceleration = m.ops.paging || m.ops.snapping ? 4 : 1;;
+      let minVelocityToStartDeceleration = m.ops.paging || m.ops.snap ? 4 : 1;;
       // 验证我们有足够的速度开始减速
       let isVelocityX = Math.abs(m._velocityX) > minVelocityToStartDeceleration
       let isVelocityY = Math.abs(m._velocityY) > minVelocityToStartDeceleration
@@ -558,7 +592,7 @@ class Scroller {
     }else {
       if (m.ops.paging) {
         left = Math.round(left / m._containerW) * m._containerW;
-      } else if (m.ops.snapping) {
+      } else if (m.ops.snap) {
         left = Math.round(left / m._snapW) * m._snapW;
       }
     }
@@ -567,18 +601,13 @@ class Scroller {
     }else {
       if (m.ops.paging) {
         top = Math.round(top / m._containerH) * m._containerH;
-      } else if (m.ops.snapping) {
+      } else if (m.ops.snap) {
         top = Math.round(top / m._snapH) * m._snapH;
       }
     }
-    // 容许范围极限 增加最小高度判断
-    if(m.ops.snappingAlign === 'select'){
-      left = Math.max(Math.min(m.maxScrollX, left), m.minScrollX);
-      top = Math.max(Math.min(m.maxScrollY, top), m.minScrollY);
-    } else {
-      left = Math.max(Math.min(m.maxScrollX, left), 0);
-      top = Math.max(Math.min(m.maxScrollY, top), 0);
-    }
+    // 容许范围极限
+    left = Math.max(Math.min(m.maxScrollX, left), 0);
+    top = Math.max(Math.min(m.maxScrollY, top), 0);
     // 当没有检测到更改时，不要动画，仍然调用publish以确保呈现的位置与内部数据是同步的
     if (left === m.scrollX && top === m.scrollY) {
       animate = false;
@@ -603,7 +632,7 @@ class Scroller {
   _publish(left, top, animate) {
     let m = this;
     // 记住我们是否有动画，然后我们尝试基于动画的当前“驱动器”继续
-    // 当前主要服务于 snapping
+    // 当前主要服务于 snap
     let wasAnimating = m._isAnimating;
     if (wasAnimating) {
       m._animate.stop(wasAnimating);
@@ -638,7 +667,7 @@ class Scroller {
         }
         if (m.completeDeceleration || wasFinished) {
           m._scrollingComplete()
-          m._snappingComplete()
+          m._snapComplete()
         }
       };
       // 当继续基于之前的动画时，我们选择一个ease-out动画而不是ease-in-out
@@ -682,11 +711,11 @@ class Scroller {
     m.ops.scrollingComplete();
   }
   // 选择器完成事件，只在指定的情况下触法
-  _snappingComplete(){
+  _snapComplete(){
     let m = this
-    if(m.ops.snappingAlign === 'select'){
+    if(m.ops.snapAlign === 'select'){
       let select = m._getSnapValue()
-      m.ops.snappingComplete(select);
+      m.ops.snapComplete(select);
     }
   }
   // 计算当前snap选择的是哪个节点
@@ -696,7 +725,7 @@ class Scroller {
     let scrollY = m.scrollY<0 ? minScrollY - Math.abs(m.scrollY) : minScrollY + Math.abs(m.scrollY);
     let num = scrollY / m._snapH
     return {
-      listIndex: m.ops.snappingListIndex,
+      listIndex: m.ops.snapListIndex,
       selectIndex: Math.floor(num)
     }
   }
@@ -756,7 +785,7 @@ class Scroller {
       m._stepThroughDeceleration(render);
     };
     // 保持减速运行需要多少速度
-    let minVelocityToKeepDecelerating = m.ops.snapping ? 2 : 0.001;
+    let minVelocityToKeepDecelerating = m.ops.snap ? 2 : 0.001;
     // 检测是否仍然值得继续动画步骤 如果我们已经慢到无法再被用户感知，我们就会在这里停止整个过程。
     let verify = () => {
       let shouldContinue =
@@ -774,7 +803,7 @@ class Scroller {
         m._scrollingComplete()
       }
       // 动画网格时，捕捉是活跃的，否则只是固定边界外的位置
-      m._scrollTo(m.scrollX, m.scrollY, m.ops.snapping);
+      m._scrollTo(m.scrollX, m.scrollY, m.ops.snap);
     };
     // 启动动画并打开标志
     m._isDecelerating = m._animate.start(step, verify, completed);
@@ -810,7 +839,7 @@ class Scroller {
     }
     // 在每次迭代中减慢速度 模拟自然行为
     if (!m.ops.paging) {
-      let frictionFactor = 0.95;
+      let frictionFactor = 0.97;
       m._velocityX *= frictionFactor;
       m._velocityY *= frictionFactor;
     }

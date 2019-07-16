@@ -1,5 +1,5 @@
 <template>
-  <div class="snapping">
+  <div class="snap">
     <nav-bar title="Snapping"></nav-bar>
     <div class="scroller-container">
       <div class="item-title border-bottom-1px">基本使用</div>
@@ -7,11 +7,9 @@
         <div class="flex-box" v-for="(item,index) in Array(4)" :key="index" :class="index!==3?'border-right-1px':''">
           <vue-app-scroller
             :scrollingY="true"
-            :snapping="snapping"
+            :snap="snap"
             :data="itemsY">
-            <div class="scroller-content">
-              <div class="row" v-for="(item, index) in itemsY" :class="{'grey-bg': index % 2 == 0}" :key="index">{{ item }}</div>
-            </div>
+            <div class="row" v-for="(item, index) in itemsY" :class="{'grey-bg': index % 2 == 0}" :key="index">{{ item }}</div>
           </vue-app-scroller>
         </div>
       </div>
@@ -20,34 +18,30 @@
         <div class="flex-box" v-for="(item,index) in Array(3)" :key="item" :class="index!==2?'border-bottom-1px':''">
           <vue-app-scroller
             :scrollingX="true"
-            :snapping="snapping"
+            :snap="snap"
             :data="itemsX">
-            <div class="scroller-content">
-              <div class="row" v-for="(item, index) in itemsX" :class="{'grey-bg': index % 2 == 0}" :key="index">{{ item }}</div>
-            </div>
+            <div class="row" v-for="(item, index) in itemsX" :class="{'grey-bg': index % 2 == 0}" :key="index">{{ item }}</div>
           </vue-app-scroller>
         </div>
       </div>
       <div class="item-title border-bottom-1px">返回对应索引</div>
       <div class="item-show border-bottom-1px">
-        <div>{{snappingArray[0]}}</div>
-        <div>{{snappingArray[1]}}</div>
-        <div>{{snappingArray[2]}}</div>
-        <div>{{snappingArray[3]}}</div>
+        <div>{{snapArray[0]}}</div>
+        <div>{{snapArray[1]}}</div>
+        <div>{{snapArray[2]}}</div>
+        <div>{{snapArray[3]}}</div>
       </div>
       <div class="item-content scroll-y-bd y2 border-bottom-1px">
-        <div class="flex-box" v-for="(item,index) in snappingArray" :key="index">
+        <div class="flex-box" v-for="(item,index) in snapArray" :key="index">
           <vue-app-scroller
-            snappingAlign="select"
+            snapAlign="select"
             :scrollingY="true"
-            :snapping="snapping"
-            :snappingComplete="snappingComplete"
-            :snappingSelect="item"
-            :snappingListIndex="index"
+            :snap="snap"
+            :snapComplete="snapComplete"
+            :snapSelect="item"
+            :snapListIndex="index"
             :data="itemsY">
-            <div class="scroller-content">
-              <div class="row" v-for="(item, index) in itemsY" :key="index">{{ item }}</div>
-            </div>
+            <div class="row" v-for="(item, index) in itemsY" :key="index">{{ item }}</div>
           </vue-app-scroller>
         </div>
         <div class="shade"></div>
@@ -68,10 +62,10 @@
     },
     data () {
       return {
-        snapping:[90,40],
+        snap:[90,40],
         itemsY: [],
         itemsX: [],
-        snappingArray:[],
+        snapArray:[],
       }
     },
     created () {
@@ -79,7 +73,7 @@
       for (let i = 1; i <= 20; i++) {
         itemsY.push('ScrollerY.'+i )
       }
-      this.snappingArray=[1,2,0,6]
+      this.snapArray=[1,2,0,6]
       let itemsX = []
 
       for (let i = 1; i <= 10; i++) {
@@ -93,20 +87,20 @@
     mounted() {
     },
     methods:{
-      snappingComplete(e){
-        let add = this.snappingArray.concat([])
-        this.snappingArray.forEach((item,index) => {
+      snapComplete(e){
+        let add = this.snapArray.concat([])
+        this.snapArray.forEach((item,index) => {
           if(index === e.listIndex){
             add[index] = e.selectIndex
           }
         });
-        this.snappingArray = add
+        this.snapArray = add
       }
     }
   }
 </script>
 <style lang="stylus">
-  .snapping
+  .snap
     .item-show
       height 18px;
       display flex;

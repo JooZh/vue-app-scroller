@@ -11,12 +11,12 @@
         <div class="datetime-content">
           <div class="flex-box" v-for="(item,index) in timeSpace" :key="index">
             <vue-app-scroller
-              snappingAlign="select"
+              snapAlign="select"
               :scrollingY="true"
-              :snapping="snapping"
-              :snappingComplete="snappingComplete"
-              :snappingSelect="currentSpace[index]"
-              :snappingListIndex="index"
+              :snap="snap"
+              :snapComplete="snapComplete"
+              :snapSelect="currentSpace[index]"
+              :snapListIndex="index"
               :data="item">
               <div class="scroller-content">
                 <div class="row" v-for="(value, key) in item" :key="key">{{ value }}</div>
@@ -89,7 +89,7 @@ export default {
   data() {
     return {
       open: false,
-      snapping:[90,40],
+      snap:[90,40],
       timeSpace:[[],[],[],[],[],[]],
       currentSpace:this.propCurrentSpace,
       currentTimeList:this.currentTimeArr,
@@ -105,7 +105,7 @@ export default {
     cancelPageScroll(e){
       e.preventDefault()
     },
-    snappingComplete(e){
+    snapComplete(e){
       // 判断是否是更新选择
       let currentE = [e.listIndex,e.selectIndex]
       if(currentE.toString() === this.currentE.toString()){

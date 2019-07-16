@@ -31,7 +31,7 @@
     },
     mounted() {
       let items = []
-      for (let i = 1; i < 200; i++) {
+      for (let i = 1; i < 500; i++) {
         items.push(i + ' - keep walking, be 2 with you.')
       }
       this.items = items

@@ -11,12 +11,12 @@
         <div class="datetime-content">
           <div class="flex-box">
             <vue-app-scroller
-              snappingAlign="select"
+              snapAlign="select"
               :scrollingY="true"
-              :snapping="snapping"
-              :snappingComplete="snappingComplete"
-              :snappingSelect="0"
-              :snappingListIndex="0"
+              :snap="snap"
+              :snapComplete="snapComplete"
+              :snapSelect="0"
+              :snapListIndex="0"
               :data="data">
               <div class="scroller-content">
                 <div class="row" v-for="(value, key) in data" :key="key">{{ value.key }}</div>
@@ -56,7 +56,7 @@ export default {
   data() {
     return {
       open: false,
-      snapping:[90,40],
+      snap:[90,40],
       data:[],
       selectIndex:0,
     };
@@ -64,13 +64,14 @@ export default {
   created() {
     setTimeout(()=>{
       this.data = this.propData;
+      // console.log(this.propData)
     },30)
   },
   methods: {
     cancelPageScroll(e){
       e.preventDefault()
     },
-    snappingComplete(e){
+    snapComplete(e){
       this.selectIndex = e.selectIndex;
     },
     // 点击取消

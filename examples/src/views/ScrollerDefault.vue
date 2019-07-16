@@ -5,9 +5,7 @@
       <div class="item-title border-bottom-1px">纵向滚动-监听滚动位置</div>
       <div class="item-content scroll-y-bd border-bottom-1px">
         <vue-app-scroller :scrollingY="scrollingY" :onScroll="scrollY" :data="itemsY">
-          <div class="scroller-content">
-            <div class="row" v-for="(item, index) in itemsY" :class="{'grey-bg': index % 2 == 0}" :key="index">{{ item }}</div>
-          </div>
+          <div class="row" v-for="(item, index) in itemsY" :class="{'grey-bg': index % 2 == 0}" :key="index">{{ item }}</div>
         </vue-app-scroller>
         <div class="info-position">{{ Y.x + ',' + Y.y }}</div>
       </div>
@@ -15,23 +13,17 @@
       <div class="item-content scroll-x-bd border-bottom-1px">
         <div class="line">
           <vue-app-scroller :onScroll="scrollX" :scrollingX="true" :data="itemsX">
-            <div class="lists">
-              <div v-for="(item, index) in itemsX" class="list" :key="index">{{ item }}</div>
-            </div>
+            <div v-for="(item, index) in itemsX" class="list" :key="index">{{ item }}</div>
           </vue-app-scroller>
         </div>
         <div class="line color">
           <vue-app-scroller :scrollingX="true" :data="itemsX">
-            <div class="lists">
-              <div v-for="(item, index) in itemsX" class="list" :key="index">{{ item }}</div>
-            </div>
+            <div v-for="(item, index) in itemsX" class="list" :key="index">{{ item }}</div>
           </vue-app-scroller>
         </div>
         <div class="line">
           <vue-app-scroller :scrollingX="true" :data="itemsX">
-            <div class="lists">
-              <div v-for="(item, index) in itemsX" class="list" :key="index">{{ item }}</div>
-            </div>
+            <div v-for="(item, index) in itemsX" class="list" :key="index">{{ item }}</div>
           </vue-app-scroller>
         </div>
         <div class="info-position">{{ X.x + ',' + X.y }}</div>
@@ -98,12 +90,11 @@
         position: relative;
         &.color
           background #f7f7f7;
-        .lists
-          .list
-            padding 0 24px;
-            height 50px;
-            font-size 16px;
-            line-height 50px;
-            text-align center;
-            display: inline-block 
+        .list
+          padding 0 24px;
+          height 50px;
+          font-size 16px;
+          line-height 50px;
+          text-align center;
+          display: inline-block
 </style>
