@@ -4,6 +4,7 @@ import Render from './render.js'
 class Scroller {
   constructor(selector, options) {
     let m = this
+    m.w = window;
     // 空函数用于初始化操作结束的回调
     m._NOOP = function () {};
     // 自定义事件 用 on 监听，用 emit 发送
@@ -60,7 +61,7 @@ class Scroller {
       dom = selector
     }
     // 启动 dom 变化 监听事件 用于更新滚动区域后重新计算当前可滚动区域
-    let MutationObserver = window.MutationObserver || window.WebKitMutationObserver|| window.MozMutationObserver;
+    let MutationObserver = m.w.MutationObserver || m.w.WebKitMutationObserver|| m.w.MozMutationObserver;
     let observerMutationSupport = !!MutationObserver;
     if(observerMutationSupport){
         let observer = new MutationObserver((mutations) => {
@@ -224,7 +225,6 @@ class Scroller {
     // 保存下拉刷新和上拉加载的高度
     m._refreshH = m.ops.isPullRefresh ? childrens[0].offsetHeight : 0;
     m._loadingH = m.ops.isReachBottom ? childrens[childrens.length-1].offsetHeight : 0;
-
     // 剧中类型的选择
     if(m.ops.snapAlign === 'middle'){
       let itemCount = Math.floor(Math.round(m._containerH / m._snapH)/2)
@@ -237,10 +237,8 @@ class Scroller {
     // 更新可滚动区域的尺寸。
     m.maxScrollX = Math.max(m._contentW - m._containerW, 0);
     m.maxScrollY = Math.max(m._contentH - m._containerH, 0) - m._refreshH;
-
     // 更新可上拉加载状态区域
     m._reachActive = false;
-
     // 更新滚动位置
     m._scrollTo(m.scrollX, m.scrollY, true);
   }

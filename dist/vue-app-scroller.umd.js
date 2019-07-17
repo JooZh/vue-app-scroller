@@ -184,6 +184,7 @@ var Scroller = function () {
     _classCallCheck(this, Scroller);
 
     var m = this;
+    m.w = window;
 
     m._NOOP = function () {};
 
@@ -202,7 +203,7 @@ var Scroller = function () {
       mousewheel: false,
       paging: false,
       snap: false,
-      snapAlign: 'defalut',
+      snapAlign: 'top',
       snapSelect: 0,
       snapListIndex: 0,
       bouncing: true,
@@ -236,7 +237,7 @@ var Scroller = function () {
         dom = selector;
       }
 
-      var MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
+      var MutationObserver = m.w.MutationObserver || m.w.WebKitMutationObserver || m.w.MozMutationObserver;
       var observerMutationSupport = !!MutationObserver;
       if (observerMutationSupport) {
         var observer = new MutationObserver(function (mutations) {
@@ -397,7 +398,7 @@ var Scroller = function () {
       m._refreshH = m.ops.isPullRefresh ? childrens[0].offsetHeight : 0;
       m._loadingH = m.ops.isReachBottom ? childrens[childrens.length - 1].offsetHeight : 0;
 
-      if (m.ops.snapAlign === 'select') {
+      if (m.ops.snapAlign === 'middle') {
         var itemCount = Math.floor(Math.round(m._containerH / m._snapH) / 2);
         m._content.style.padding = itemCount * m._snapH + 'px 0';
         if (!m.snapAlignInit) {
@@ -862,7 +863,7 @@ var Scroller = function () {
     key: '_snapComplete',
     value: function _snapComplete() {
       var m = this;
-      if (m.ops.snapAlign === 'select') {
+      if (m.ops.snapAlign === 'middle') {
         m.ops.snapComplete(m._getSnapValue());
       }
     }
