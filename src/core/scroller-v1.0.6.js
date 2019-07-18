@@ -164,25 +164,9 @@ class Scroller {
     };
     // 触摸开始事件
     el.addEventListener(_event.start, e => {
-      if (!e.target.tagName.match(/input|textarea|select/i)){
-        m.doTouchStart(e.touches, e.timeStamp)
-      }
+      if (e.target.tagName.match(/input|textarea|select/i)) return;
+      m.doTouchStart(e.touches, e.timeStamp)
     }, false)
-
-
-    // el.addEventListener('click', e => {
-    //   if (e.target.tagName.match(/input|textarea|select/i)){
-    //     m._scrollTo(0,m.scrollY+200,true)
-    //   }
-    // }, false)
-    // 解决ios 微信端的不自动回缩问题
-    document.body.addEventListener('focusout', () =>{
-      let timer = setTimeout(()=>{
-        window.scrollTo({top: 0, left: 0, behavior:'smooth'})
-        clearTimeout(timer)
-      }, 250)
-    })
-
     // 触摸移动事件
     el.addEventListener(_event.move, e => {
       e.preventDefault()

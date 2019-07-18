@@ -11,6 +11,7 @@ import NestingLayout from '../views/NestingLayout.vue'
 import CeilingLayout from '../views/CeilingLayout.vue'
 import Paging from '../views/Paging.vue'
 import MouseWheel from '../views/MouseWheel.vue'
+import Input from '../views/Input.vue'
 
 Vue.use(Router)
 
@@ -25,6 +26,7 @@ export default new Router({
     { path: '/mousewheel', component: MouseWheel },
     { path: '/snap-components', component: SnapComponents },
     { path: '/nesting', component: NestingLayout },
+    { path: '/input', component: Input },
     { path: '/ceiling', component: CeilingLayout }
   ]
 })

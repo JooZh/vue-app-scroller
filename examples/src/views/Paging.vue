@@ -4,16 +4,13 @@
     <div class="scroller-container">
       <div class="item-title border-bottom-1px">纵向滚动</div>
       <div class="item-content scroll-y-bd border-bottom-1px">
-        <vue-app-scroller :scrollingY="true" :paging="true">
+        <vue-app-scroller :scrollingY="true" :paging="true" :bouncing="false">
           <div class="row" v-for="(item, index) in itemsY" :class="{'grey-bg': index % 2 == 0}" :key="index">{{ item }}</div>
         </vue-app-scroller>
       </div>
       <div class="item-title border-bottom-1px">横向滚动</div>
       <div class="item-content scroll-x-bd border-bottom-1px">
-        <vue-app-scroller
-          :scrollingX="true"
-          :paging="true"
-          :bouncing="true">
+        <vue-app-scroller :scrollingX="true" :paging="true" :bouncing="false">
           <div class="row" v-for="(item, index) in itemsX" :class="{'grey-bg': index % 2 == 0}" :key="index">{{ item }}</div>
         </vue-app-scroller>
       </div>
@@ -23,7 +20,6 @@
 
 <script>
   import NavBar from './NavBar.vue'
-
   export default {
     components: {
       NavBar
@@ -47,7 +43,6 @@
         itemsX.push('ScrollerX.'+i)
       }
       this.itemsX = itemsX;
-
     },
     methods:{
       scrollingComplete(){

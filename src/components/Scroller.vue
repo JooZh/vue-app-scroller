@@ -273,6 +273,9 @@ export default {
 }
 </script>
 <style>
+body{
+  scroll-behavior:smooth
+}
 .vue-app-scroller__container{
   width: 100%;
   height: 100%;

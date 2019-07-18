@@ -63,7 +63,6 @@ export default {
   created() {
     setTimeout(()=>{
       this.data = this.propData;
-      // console.log(this.propData)
     },30)
   },
   methods: {
