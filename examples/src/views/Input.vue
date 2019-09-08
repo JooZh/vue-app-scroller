@@ -25,7 +25,7 @@
           v-for="(item, index) in items"
           class="row"
           :class="{'grey-bg': index % 2 == 0}"
-          :key="'2'+index">
+          :key="'3'+index">
           {{ item }}
         </div>
       </vue-app-scroller>

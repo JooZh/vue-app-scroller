@@ -1,14 +1,8 @@
 /**
-* vue-app-scroller v1.0.5
+* vue-app-scroller v1.0.6
 * https://github.com/JooZh/vue-app-scroller
 * Released under the MIT License.
 */
-
-(function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
-	typeof define === 'function' && define.amd ? define(factory) :
-	(global.VueAppScroller = factory());
-}(this, (function () { 'use strict';
 
 var Animate = function (global) {
   var time = Date.now || function () {
@@ -335,10 +329,17 @@ var Scroller = function () {
       };
 
       el.addEventListener(_event.start, function (e) {
-        if (e.target.tagName.match(/input|textarea|select/i)) return;
-        e.preventDefault();
-        m.doTouchStart(e.touches, e.timeStamp);
+        if (!e.target.tagName.match(/input|textarea|select/i)) {
+          m.doTouchStart(e.touches, e.timeStamp);
+        }
       }, false);
+
+      document.body.addEventListener('focusout', function () {
+        var timer = setTimeout(function () {
+          window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+          clearTimeout(timer);
+        }, 250);
+      });
 
       el.addEventListener(_event.move, function (e) {
         e.preventDefault();
@@ -390,8 +391,6 @@ var Scroller = function () {
       if (m._contentH > m._containerH && m.ops.scrollingY) {
         m.enableScrollY = m.ops.scrollingY;
       }
-
-      var prevMaxScroll = m.maxScrollY;
 
       var childrens = m._content.children;
 
@@ -933,10 +932,10 @@ var Scroller = function () {
         m._stepThroughDeceleration(render);
       };
 
-      var minVelocityToKeepDecelerating = m.ops.snap ? 2 : 0.001;
+      var minVelocity = m.ops.snap ? 4 : 0.001;
 
       var verify = function verify() {
-        var shouldContinue = Math.abs(m._velocityX) >= minVelocityToKeepDecelerating || Math.abs(m._velocityY) >= minVelocityToKeepDecelerating;
+        var shouldContinue = Math.abs(m._velocityX) >= minVelocity || Math.abs(m._velocityY) >= minVelocity;
         if (!shouldContinue) {
           m.completeDeceleration = true;
         }
@@ -945,9 +944,7 @@ var Scroller = function () {
 
       var completed = function completed(renderedFramesPerSecond, animationId, wasFinished) {
         m._isDecelerating = false;
-        if (m.completeDeceleration) {
-          m._scrollingComplete();
-        }
+        m.completeDeceleration && m._scrollingComplete();
 
         m._scrollTo(m.scrollX, m.scrollY, m.ops.snap);
       };
@@ -1030,6 +1027,4 @@ var Scroller = function () {
   return Scroller;
 }();
 
-return Scroller;
-
-})));
+export default Scroller;

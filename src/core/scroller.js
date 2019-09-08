@@ -1,6 +1,9 @@
 import Animate from './animate.js'
 import PublicApi from './api.js'
 import Render from './render.js'
+
+import utils from '../utils/utils'
+
 class Scroller {
   constructor(selector, options) {
     let m = this
@@ -148,41 +151,44 @@ class Scroller {
     m._maxDeceY = 0       // 最大减速时Y滚动位置
     // {Array} List
     m._touchArr = null    // 位置列表，每个状态使用三个索引=左、上、时间戳
+    m._activeInput = null // 被激活的输入框
   }
   // 初始化事件监听
   _initEvent() {
     let m =this;
     let el = m._container;
     // 判断是否支持触摸事件
-    const supportTouch = (window.Modernizr && !!window.Modernizr.touch) || (()=>{
-      return !!(('ontouchstart' in window) || window.DocumentTouch && document instanceof DocumentTouch);
+    const supportTouch = (m.w.Modernizr && !!m.w.Modernizr.touch) || (()=>{
+      return !!(('ontouchstart' in m.w) || m.w.DocumentTouch && document instanceof DocumentTouch);
     })();
     const _event = {
       start: supportTouch ? 'touchstart' : 'mousedown',
       move: supportTouch ? 'touchmove' : 'mousemove',
       end: supportTouch ? 'touchend' : 'mouseup'
     };
-    // 触摸开始事件
-    el.addEventListener(_event.start, e => {
-      if (!e.target.tagName.match(/input|textarea|select/i)){
-        m.doTouchStart(e.touches, e.timeStamp)
-      }
-    }, false)
 
 
-    // el.addEventListener('click', e => {
-    //   if (e.target.tagName.match(/input|textarea|select/i)){
-    //     m._scrollTo(0,m.scrollY+200,true)
-    //   }
-    // }, false)
     // 解决ios 微信端的不自动回缩问题
     document.body.addEventListener('focusout', () =>{
       let timer = setTimeout(()=>{
-        window.scrollTo({top: 0, left: 0, behavior:'smooth'})
+        m.w.scrollTo({top: 0, left: 0, behavior:'smooth'})
         clearTimeout(timer)
-      }, 250)
+      }, 150)
     })
-
+    // 视窗变化重新设置
+    m.w.onresize = ()=>{
+      m._setDimensions()
+    }
+    // 触摸开始事件
+    el.addEventListener(_event.start, e => {
+      m.doTouchStart(e.touches, e.timeStamp)
+      if(e.target.tagName.match(/input|textarea|select/i)){
+        m._activeInput = e.target
+      }
+      if(m._activeInput){
+        m._activeInput.blur()
+      }
+    }, false)
     // 触摸移动事件
     el.addEventListener(_event.move, e => {
       e.preventDefault()
@@ -237,7 +243,8 @@ class Scroller {
     // 保存下拉刷新和上拉加载的高度
     m._refreshH = m.ops.isPullRefresh ? childrens[0].offsetHeight : 0;
     m._loadingH = m.ops.isReachBottom ? childrens[childrens.length-1].offsetHeight : 0;
-    // 剧中类型的选择
+
+    // 居中类型的选择
     if(m.ops.snapAlign === 'middle'){
       let itemCount = Math.floor(Math.round(m._containerH / m._snapH)/2)
       m._content.style.padding = `${itemCount*m._snapH}px 0`;
@@ -263,25 +270,13 @@ class Scroller {
     }
   }
   /*---------------------------------------------------------------------------
-    动画缓动函数
-  --------------------------------------------------------------------------- */
-  _easeOutCubic(pos) {
-    return (Math.pow((pos - 1), 3) + 1);
-  }
-  _easeInOutCubic(pos) {
-    if ((pos /= 0.5) < 1) {
-      return 0.5 * Math.pow(pos, 3);
-    }
-    return 0.5 * (Math.pow((pos - 2), 3) + 2);
-  }
-  /*---------------------------------------------------------------------------
     触摸事件监听操作
   --------------------------------------------------------------------------- */
   // 触摸开始的时候，如果有动画正在运行，或者正在减速的时候都需要停止当前动画
   doTouchStart(touches, timeStamp) {
     let m = this;
-    m._isTouches(touches);
-    m._isTouchesTime(timeStamp)
+    utils._isTouches(touches);
+    utils._isTouchesTime(timeStamp)
     // 重置跟踪标记
     m._isTracking = true;
     // 停止动画
@@ -295,8 +290,8 @@ class Scroller {
   // 触摸滑动的时候，
   doTouchMove(touches, timeStamp) {
     let m = this;
-    m._isTouches(touches);
-    m._isTouchesTime(timeStamp)
+    utils._isTouches(touches);
+    utils._isTouchesTime(timeStamp)
     // 跟踪判断
     if (!m._isTracking) {
       return;
@@ -349,7 +344,7 @@ class Scroller {
   // 触摸事件结束
   doTouchEnd(timeStamp) {
     let m = this;
-    m._isTouchesTime(timeStamp)
+    utils._isTouchesTime(timeStamp)
     if (!m._isTracking) {
       return;
     }
@@ -408,21 +403,6 @@ class Scroller {
   /*---------------------------------------------------------------------------
     触摸事件的 私有方法
   --------------------------------------------------------------------------- */
-  // 是否有触摸
-  _isTouches(touches){
-    if (touches.length == null) {
-      throw new Error("Invalid touch list: " + touches);
-    }
-  }
-  // 检测时间戳
-  _isTouchesTime(timeStamp){
-    if (timeStamp instanceof Date) {
-      timeStamp = timeStamp.valueOf();
-    }
-    if (typeof timeStamp !== "number") {
-      throw new Error("Invalid timestamp value: " + timeStamp);
-    }
-  }
   // 拖拽滚动
   _doTouchMoveActive(move, D){
     let m = this
@@ -546,7 +526,7 @@ class Scroller {
         item.apply(null, args);
       })
     } else {
-      throw new Error(`"${eventType}"Event not registered`);
+      throw new Error(`"${eventType}" Event not registered`);
     }
   }
   /*---------------------------------------------------------------------------
@@ -666,7 +646,7 @@ class Scroller {
         }
       };
       // 当继续基于之前的动画时，我们选择一个ease-out动画而不是ease-in-out
-      let animatType = wasAnimating ? m._easeOutCubic : m._easeInOutCubic
+      let animatType = wasAnimating ? utils._easeOutCubic : utils._easeInOutCubic
       m._isAnimating = m._animate.start(step, verify, completed, m.ops.animationDuration,animatType);
     } else {
       m._scheduledX = m.scrollX = left;

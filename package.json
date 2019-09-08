@@ -11,8 +11,8 @@
     "build:examples": "cd examples && node build/build.js",
     "push:pages": "git subtree push --prefix=demo origin gh-pages"
   },
-  "main": "src/index.js",
-  "module": "src/index.js",
+  "main": "dist/scroller.esm.min.js",
+  "module": "dist/scroller.esm.min.js",
   "keywords": [
     "app",
     "vue",
@@ -24,8 +24,7 @@
   ],
   "files": [
     "dist",
-    "src",
-    "examples"
+    "src"
   ],
   "author": "joozh <joozhcn@gmail.com>",
   "license": "MIT",

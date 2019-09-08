@@ -29,7 +29,7 @@
 
 <script>
 // import Scroller from '../new/new-scroller.js'
-import Scroller from '../core/scroller.js'
+import Scroller from '../../../src/index'
 import Spinner from './Spinner.vue'
 import Arrow from './Arrow.vue'
 

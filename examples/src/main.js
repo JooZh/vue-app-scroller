@@ -10,7 +10,7 @@ import '@/css/border-1px.styl'
 
 
 import router from './router/index'
-import VueAppScroller from '../../src/index'
+import VueAppScroller from './scroller/index'
 
 Vue.config.productionTip = false
 

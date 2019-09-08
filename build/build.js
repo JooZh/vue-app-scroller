@@ -25,18 +25,18 @@ const uglifyOptions = () => {
   }
 }
 const targets = [{
-    name: 'vue-app-scroller.esm',
+    name: 'scroller.esm',
     options: {
       banner: banner,
       format: 'es'
     },
     uglify: uglifyES
   }, {
-    name: 'vue-app-scroller.umd',
+    name: 'scroller.umd',
     options: {
       banner: banner,
       format: 'umd',
-      moduleName: 'VueAppScroller'
+      moduleName: 'scroller'
     },
     uglify: uglifyJS
   }
