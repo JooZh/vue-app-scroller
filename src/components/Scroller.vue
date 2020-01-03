@@ -29,7 +29,7 @@
 
 <script>
 // import Scroller from '../new/new-scroller.js'
-import Scroller from '../../../src/index'
+import Scroller from '../core/scroller.js'
 import Spinner from './Spinner.vue'
 import Arrow from './Arrow.vue'
 
@@ -126,7 +126,7 @@ export default {
       scroller:null,      // Scroller 实例
       container:null,
       content:null,
-      showLoading: false,  // 显示 加载更多
+      showLoading: true,  // 显示 加载更多
       refreshState: 0,   // 0: pull to refresh, 1: release to refresh, 2: refreshing
     }
   },
@@ -203,7 +203,7 @@ export default {
         this.content.style.width = Math.ceil(widths)+'px';
         this.scroller.refresh()
         clearTimeout(timer)
-      },500)
+      },30)
     },
     // 监听滚动事件处理
     onScrollHandler(){
@@ -273,9 +273,6 @@ export default {
 }
 </script>
 <style>
-body{
-  scroll-behavior:smooth
-}
 .vue-app-scroller__container{
   width: 100%;
   height: 100%;

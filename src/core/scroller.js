@@ -1,9 +1,6 @@
 import Animate from './animate.js'
 import PublicApi from './api.js'
 import Render from './render.js'
-
-import utils from '../utils/utils'
-
 class Scroller {
   constructor(selector, options) {
     let m = this
@@ -49,6 +46,7 @@ class Scroller {
     m._initSnapSize(m.ops.snap)
     // 初始化事件监听
     m._initEvent();
+
   }
   /*---------------------------------------------------------------------------
     初始化私有方法
@@ -66,29 +64,29 @@ class Scroller {
     let MutationObserver = m.w.MutationObserver || m.w.WebKitMutationObserver|| m.w.MozMutationObserver;
     let observerMutationSupport = !!MutationObserver;
     if(observerMutationSupport){
-      let observer = new MutationObserver((mutations) => {
-        let length = mutations.length -1
-        mutations.forEach((item,index) => {
-          if(m.ops.snap){
-            m.refresh()
-          }else{
-            if(length === index){
-              let timer = setTimeout(()=>{
-                m.refresh()
-                clearTimeout (timer)
-              },30)
+        let observer = new MutationObserver((mutations) => {
+          let length = mutations.length -1
+          mutations.forEach((item,index) => {
+            if(m.ops.snap){
+              m.refresh()
+            }else{
+              if(length === index){
+                let timer = setTimeout(()=>{
+                  m.refresh()
+                  clearTimeout (timer)
+                },30)
+              }
             }
-          }
+          });
         });
-      });
-      observer.observe(dom.children[1],{
-        "childList" : true,//子节点的变动
-        "subtree" : true//所有后代节点的变动
-        // "attributes" : true,//属性的变动
-        // "characterData" : true,//节点内容或节点文本的变动
-        // "attributeOldValue" : true,//表示观察attributes变动时，是否需要记录变动前的属性
-        // "characterDataOldValue" : true//表示观察characterData变动时，是否需要记录变动前的值
-      });
+        observer.observe(dom.children[1],{
+          "childList" : true,//子节点的变动
+          "subtree" : true//所有后代节点的变动
+          // "attributes" : true,//属性的变动
+          // "characterData" : true,//节点内容或节点文本的变动
+          // "attributeOldValue" : true,//表示观察attributes变动时，是否需要记录变动前的属性
+          // "characterDataOldValue" : true//表示观察characterData变动时，是否需要记录变动前的值
+        });
     }
     return dom
   }
@@ -151,43 +149,25 @@ class Scroller {
     m._maxDeceY = 0       // 最大减速时Y滚动位置
     // {Array} List
     m._touchArr = null    // 位置列表，每个状态使用三个索引=左、上、时间戳
-    m._activeInput = null // 被激活的输入框
   }
   // 初始化事件监听
   _initEvent() {
     let m =this;
     let el = m._container;
     // 判断是否支持触摸事件
-    const supportTouch = (m.w.Modernizr && !!m.w.Modernizr.touch) || (()=>{
-      return !!(('ontouchstart' in m.w) || m.w.DocumentTouch && document instanceof DocumentTouch);
+    const supportTouch = (window.Modernizr && !!window.Modernizr.touch) || (()=>{
+      return !!(('ontouchstart' in window) || window.DocumentTouch && document instanceof DocumentTouch);
     })();
     const _event = {
       start: supportTouch ? 'touchstart' : 'mousedown',
       move: supportTouch ? 'touchmove' : 'mousemove',
       end: supportTouch ? 'touchend' : 'mouseup'
     };
-
-
-    // 解决ios 微信端的不自动回缩问题
-    document.body.addEventListener('focusout', () =>{
-      let timer = setTimeout(()=>{
-        m.w.scrollTo({top: 0, left: 0, behavior:'smooth'})
-        clearTimeout(timer)
-      }, 150)
-    })
-    // 视窗变化重新设置
-    m.w.onresize = ()=>{
-      m._setDimensions()
-    }
     // 触摸开始事件
     el.addEventListener(_event.start, e => {
+      if (e.target.tagName.match(/input|textarea|select/i)) return;
+      e.preventDefault();
       m.doTouchStart(e.touches, e.timeStamp)
-      if(e.target.tagName.match(/input|textarea|select/i)){
-        m._activeInput = e.target
-      }
-      if(m._activeInput){
-        m._activeInput.blur()
-      }
     }, false)
     // 触摸移动事件
     el.addEventListener(_event.move, e => {
@@ -238,13 +218,14 @@ class Scroller {
     if (m._contentH > m._containerH && m.ops.scrollingY){
       m.enableScrollY = m.ops.scrollingY;
     }
+    // 保留上一次的最大可滚动值
+    let prevMaxScroll = m.maxScrollY;
     // 获取子节点
     let childrens = m._content.children;
     // 保存下拉刷新和上拉加载的高度
     m._refreshH = m.ops.isPullRefresh ? childrens[0].offsetHeight : 0;
     m._loadingH = m.ops.isReachBottom ? childrens[childrens.length-1].offsetHeight : 0;
-
-    // 居中类型的选择
+    // 剧中类型的选择
     if(m.ops.snapAlign === 'middle'){
       let itemCount = Math.floor(Math.round(m._containerH / m._snapH)/2)
       m._content.style.padding = `${itemCount*m._snapH}px 0`;
@@ -270,13 +251,25 @@ class Scroller {
     }
   }
   /*---------------------------------------------------------------------------
+    动画缓动函数
+  --------------------------------------------------------------------------- */
+  _easeOutCubic(pos) {
+    return (Math.pow((pos - 1), 3) + 1);
+  }
+  _easeInOutCubic(pos) {
+    if ((pos /= 0.5) < 1) {
+      return 0.5 * Math.pow(pos, 3);
+    }
+    return 0.5 * (Math.pow((pos - 2), 3) + 2);
+  }
+  /*---------------------------------------------------------------------------
     触摸事件监听操作
   --------------------------------------------------------------------------- */
   // 触摸开始的时候，如果有动画正在运行，或者正在减速的时候都需要停止当前动画
   doTouchStart(touches, timeStamp) {
     let m = this;
-    utils._isTouches(touches);
-    utils._isTouchesTime(timeStamp)
+    m._isTouches(touches);
+    m._isTouchesTime(timeStamp)
     // 重置跟踪标记
     m._isTracking = true;
     // 停止动画
@@ -290,8 +283,8 @@ class Scroller {
   // 触摸滑动的时候，
   doTouchMove(touches, timeStamp) {
     let m = this;
-    utils._isTouches(touches);
-    utils._isTouchesTime(timeStamp)
+    m._isTouches(touches);
+    m._isTouchesTime(timeStamp)
     // 跟踪判断
     if (!m._isTracking) {
       return;
@@ -344,7 +337,7 @@ class Scroller {
   // 触摸事件结束
   doTouchEnd(timeStamp) {
     let m = this;
-    utils._isTouchesTime(timeStamp)
+    m._isTouchesTime(timeStamp)
     if (!m._isTracking) {
       return;
     }
@@ -403,6 +396,21 @@ class Scroller {
   /*---------------------------------------------------------------------------
     触摸事件的 私有方法
   --------------------------------------------------------------------------- */
+  // 是否有触摸
+  _isTouches(touches){
+    if (touches.length == null) {
+      throw new Error("Invalid touch list: " + touches);
+    }
+  }
+  // 检测时间戳
+  _isTouchesTime(timeStamp){
+    if (timeStamp instanceof Date) {
+      timeStamp = timeStamp.valueOf();
+    }
+    if (typeof timeStamp !== "number") {
+      throw new Error("Invalid timestamp value: " + timeStamp);
+    }
+  }
   // 拖拽滚动
   _doTouchMoveActive(move, D){
     let m = this
@@ -526,7 +534,7 @@ class Scroller {
         item.apply(null, args);
       })
     } else {
-      throw new Error(`"${eventType}" Event not registered`);
+      throw new Error(`"${eventType}"Event not registered`);
     }
   }
   /*---------------------------------------------------------------------------
@@ -646,7 +654,7 @@ class Scroller {
         }
       };
       // 当继续基于之前的动画时，我们选择一个ease-out动画而不是ease-in-out
-      let animatType = wasAnimating ? utils._easeOutCubic : utils._easeInOutCubic
+      let animatType = wasAnimating ? m._easeOutCubic : m._easeInOutCubic
       m._isAnimating = m._animate.start(step, verify, completed, m.ops.animationDuration,animatType);
     } else {
       m._scheduledX = m.scrollX = left;
@@ -759,10 +767,12 @@ class Scroller {
       m._stepThroughDeceleration(render);
     };
     // 保持减速运行需要多少速度
-    let minVelocity = m.ops.snap ? 4 : 0.001;
+    let minVelocityToKeepDecelerating = m.ops.snap ? 2 : 0.001;
     // 检测是否仍然值得继续动画步骤 如果我们已经慢到无法再被用户感知，我们就会在这里停止整个过程。
     let verify = () => {
-      let shouldContinue = Math.abs(m._velocityX) >= minVelocity || Math.abs(m._velocityY) >= minVelocity;
+      let shouldContinue =
+        Math.abs(m._velocityX) >= minVelocityToKeepDecelerating ||
+        Math.abs(m._velocityY) >= minVelocityToKeepDecelerating;
       if (!shouldContinue) {
         m.completeDeceleration = true;
       }
@@ -771,7 +781,9 @@ class Scroller {
     //
     let completed = (renderedFramesPerSecond, animationId, wasFinished) => {
       m._isDecelerating = false;
-      m.completeDeceleration && m._scrollingComplete()
+      if (m.completeDeceleration) {
+        m._scrollingComplete()
+      }
       // 动画网格时，捕捉是活跃的，否则只是固定边界外的位置
       m._scrollTo(m.scrollX, m.scrollY, m.ops.snap);
     };

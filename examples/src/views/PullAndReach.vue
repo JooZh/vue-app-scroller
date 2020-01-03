@@ -5,7 +5,7 @@
       <vue-app-scroller
         :scrollingY="true"
         :onPullRefresh="refresh"
-        :onReachBottom ="loadingMore">
+        :onReachBottom="loadingMore">
         <div
           v-for="(item, index) in items"
           class="row"
