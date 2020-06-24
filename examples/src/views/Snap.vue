@@ -5,22 +5,20 @@
       <div class="item-title border-bottom-1px">基本使用</div>
       <div class="item-content scroll-y-bd y1 border-bottom-1px">
         <div class="flex-box" v-for="(item,index) in Array(4)" :key="index" :class="index!==3?'border-right-1px':''">
-          <vue-app-scroller
-            :scrollingY="true"
-            :snap="snap"
-            :data="itemsY">
-            <div class="row" v-for="(item, index) in itemsY" :class="{'grey-bg': index % 2 == 0}" :key="index">{{ item }}</div>
+          <vue-app-scroller :snap="true">
+            <div class="row-content">
+                <div class="row" v-for="(item, index) in itemsY" :class="{'grey-bg': index % 2 == 0}" :key="index">{{ item }}</div>
+            </div>
           </vue-app-scroller>
         </div>
       </div>
       <div class="item-title border-bottom-1px">横向滚动</div>
       <div class="item-content scroll-x-bd border-bottom-1px">
         <div class="flex-box" v-for="(item,index) in Array(3)" :key="item" :class="index!==2?'border-bottom-1px':''">
-          <vue-app-scroller
-            :scrollingX="true"
-            :snap="snap"
-            :data="itemsX">
-            <div class="row" v-for="(item, index) in itemsX" :class="{'grey-bg': index % 2 == 0}" :key="index">{{ item }}</div>
+          <vue-app-scroller :snap="true">
+            <div class="row-content">
+                <div class="row" v-for="(item, index) in itemsX" :class="{'grey-bg': index % 2 == 0}" :key="index">{{ item }}</div>
+            </div>
           </vue-app-scroller>
         </div>
       </div>
@@ -36,11 +34,13 @@
           <vue-app-scroller
             snapAlign="middle"
             :scrollingY="true"
-            :snap="snap"
+            :snap="true"
             :snapComplete="snapComplete"
             :snapSelect="item"
             :snapListIndex="index">
-            <div class="row" v-for="(item, index) in itemsY" :key="index">{{ item }}</div>
+            <div class="row-content">
+                <div class="row" v-for="(item, index) in itemsY" :key="index">{{ item }}</div>
+            </div>
           </vue-app-scroller>
         </div>
         <div class="shade"></div>

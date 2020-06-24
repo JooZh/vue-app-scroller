@@ -4,7 +4,7 @@
     <div class="scroller-container">
       <div class="item-title border-bottom-1px">纵向滚动-监听滚动位置</div>
       <div class="item-content scroll-y-bd border-bottom-1px">
-        <vue-app-scroller :scrollingY="scrollingY" :onScroll="scrollY">
+        <vue-app-scroller :onScroll="scrollY" :scrollBar="false">
           <div class="row" v-for="(item, index) in itemsY" :class="{'grey-bg': index % 2 == 0}" :key="index">{{ item }}</div>
         </vue-app-scroller>
         <div class="info-position">{{ Y.x + ',' + Y.y }}</div>
@@ -12,17 +12,19 @@
       <div class="item-title border-bottom-1px">横向滚动-监听滚动位置[1]</div>
       <div class="item-content scroll-x-bd border-bottom-1px">
         <div class="line">
-          <vue-app-scroller :onScroll="scrollX" :scrollingX="true">
+          <vue-app-scroller :onScroll="scrollX" :scrollX="true" :scrollBar="false">
             <div v-for="(item, index) in itemsX" class="list" :key="index">{{ item }}</div>
           </vue-app-scroller>
         </div>
         <div class="line color">
-          <vue-app-scroller :scrollingX="true">
-            <div v-for="(item, index) in itemsX" class="list" :key="index">{{ item }}</div>
+          <vue-app-scroller :scrollX="'.list-warpper'" :scrollBar="false">
+              <div class="list-warpper">
+                <div v-for="(item, index) in itemsX" class="list" :key="index">{{ item }}</div>
+              </div>
           </vue-app-scroller>
         </div>
         <div class="line">
-          <vue-app-scroller :scrollingX="true">
+          <vue-app-scroller :scrollX="true" :scrollBar="false">
             <div v-for="(item, index) in itemsX" class="list" :key="index">{{ item }}</div>
           </vue-app-scroller>
         </div>

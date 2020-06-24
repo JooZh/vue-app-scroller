@@ -1,38 +1,37 @@
 <template>
-  <div>
-    <nav-bar title="PullRefresh & ReachBottom"></nav-bar>
-    <div class="scroller-container">
-      <vue-app-scroller
-        ref="scroll"
-        :onLoadData="loadData"
-        :onPullRefresh="onPullRefresh">
-        <div
-          v-for="(item, index) in items"
-          class="row"
-          :class="{'grey-bg': index % 2 == 0}"
-          :key="index">{{ item }}</div>
-      </vue-app-scroller>
-    </div>
-  </div>
+    <ScrollerPage
+        :pullcallback="pullcallback"
+        :callback="callback"
+        ref="infinitescrollDemo"
+    >
+        <div slot='list'>
+            <div
+            v-for="(item, index) in items"
+            class="row"
+            :class="{'grey-bg': index % 2 == 0}"
+            :key="index">{{ item }}</div>
+        </div>
+    </ScrollerPage>
 </template>
 
 <script>
-  import NavBar from './NavBar.vue'
-
-  export default {
-    components: {
-      NavBar
+import ScrollerPage from '../../../src/scroller-page/index'
+export default {
+    components:{
+        ScrollerPage
     },
-
-    data () {
-      return {
-        page:1,
-        rows:25,
-        count:100,
-        items: []
+    data(){
+        return {
+            page:1,
+            rows:25,
+            count:100,
+            items: []
       }
     },
-    methods: {
+    created(){
+        this.getData()
+    },
+    methods:{
         getData(done){
             setTimeout(() => {
                 let items = []
@@ -52,14 +51,21 @@
         loadData(done) {
             this.getData(done);
         },
-        onPullRefresh(done) {
+        pullcallback(){
             this.page = 1;
             this.items = [];
             let t = setTimeout(() => {
                 this.getData(done);
                 clearTimeout(t);
             }, 500);
+        },
+        callback(){
+            this.getData()
         }
     }
-  }
+}
 </script>
+
+<style>
+
+</style>

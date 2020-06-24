@@ -1,19 +1,9 @@
+import VueInfiniteScroller from './infinite-scroller/index';
 
-import Scroller from './components/Scroller.vue'
-
-function install (Vue) {
-  if (install.installed) return
-  install.installed = true
-  Vue.component('vue-app-scroller', Scroller)
+function install(Vue) {
+    if (install.installed) return;
+    install.installed = true;
+    Vue.component('vue-app-scroller', VueInfiniteScroller);
 }
 
-const VueAppScroller = {
-  install: install,
-  Scroller
-}
-
-if (typeof window !== undefined && window.Vue) {
-  window.Vue.use(VueAppScroller)
-}
-
-export default VueAppScroller
+export default install;

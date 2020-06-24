@@ -1,6 +1,6 @@
 <template>
   <div class="home-container">
-    <vue-app-scroller :scrollingY="true">
+    <vue-app-scroller>
       <div class="scroller-content">
         <h1 class="plugin-name">Vue-App-Scroller</h1>
         <p class="for-vue">for Vue.js 2.0</p>
@@ -18,10 +18,10 @@
             <img src="../assets/arrow-right.png" class="arrow-right">
           </div>
         </router-link>
-        <router-link class="row grey-bg" tag="label" to="/click">
-          <span class="left">Click</span>
+        <router-link class="row grey-bg" tag="label" to="/scroller-page">
+          <span class="left">ScrollPage</span>
           <div class="right">
-            <span>【 点击事件 】</span>
+            <span>【 页面刷新 】</span>
             <img src="../assets/arrow-right.png" class="arrow-right">
           </div>
         </router-link>
@@ -46,13 +46,13 @@
             <img src="../assets/arrow-right.png" class="arrow-right">
           </div>
         </router-link>
-        <router-link class="row grey-bg" tag="label" to="/input">
+        <!-- <router-link class="row grey-bg" tag="label" to="/input">
           <span class="left">Input</span>
           <div class="right">
             <span>【 文本输入 】</span>
             <img src="../assets/arrow-right.png" class="arrow-right">
           </div>
-        </router-link>
+        </router-link> -->
         <router-link class="row" tag="label" to="/ceiling">
           <span class="left">Ceiling Layout</span>
           <div class="right">
@@ -60,13 +60,13 @@
             <img src="../assets/arrow-right.png" class="arrow-right">
           </div>
         </router-link>
-        <router-link class="row grey-bg" tag="label" to="/mousewheel">
+        <!-- <router-link class="row grey-bg" tag="label" to="/mousewheel">
           <span class="left">MouseWheel</span>
           <div class="right">
             <span>【 鼠标滚动 】</span>
             <img src="../assets/arrow-right.png" class="arrow-right">
           </div>
-        </router-link>
+        </router-link> -->
       </div>
     </vue-app-scroller>
   </div>
